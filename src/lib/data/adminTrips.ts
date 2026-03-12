@@ -1,0 +1,55 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
+
+export type AdminTripRow = {
+  id: string;
+  title: string;
+  starts_at: string;
+  capacity: number;
+  is_visible: boolean;
+  status: "scheduled" | "cancelled" | "closed";
+};
+
+export async function getUpcomingTripsBySchoolId(
+  supabase: SupabaseClient<Database>,
+  schoolId: string,
+  opts?: { visibleOnly?: boolean }
+) {
+  const from = new Date().toISOString();
+
+  let query = supabase
+    .from("events")
+    .select("id, title, starts_at, capacity, is_visible, status")
+    .eq("school_id", schoolId)
+    .gte("starts_at", from)
+    .order("starts_at", { ascending: true })
+    .limit(50);
+
+  if (opts?.visibleOnly) {
+    query = query.eq("is_visible", true);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return (data ?? []) as AdminTripRow[];
+}
+
+export async function getHiddenTripsBySchoolId(
+  supabase: SupabaseClient<Database>,
+  schoolId: string
+) {
+  const from = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, title, starts_at, capacity, is_visible, status")
+    .eq("school_id", schoolId)
+    .eq("is_visible", false)
+    .gte("starts_at", from)
+    .order("starts_at", { ascending: true })
+    .limit(100);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AdminTripRow[];
+}
