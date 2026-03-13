@@ -39,5 +39,9 @@ export async function publishOccurrence(formData: FormData) {
     redirect(`/${schoolSlug}/admin?err=${encodeURIComponent("No se pudo publicar.")}`);
   }
 
-  redirect(`/${schoolSlug}/admin?ok=${encodeURIComponent("Salida publicada.")}`);
+  redirect(
+    `/${schoolSlug}/admin?ok=${encodeURIComponent("Salida publicada.")}&share=${encodeURIComponent(
+      `/${schoolSlug}/salidas/${eventId}`
+    )}`
+  );
 }

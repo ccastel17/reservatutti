@@ -2,15 +2,21 @@ import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getHiddenTripsBySchoolId, getUpcomingTripsBySchoolId } from "@/lib/data/adminTrips";
+import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
-  searchParams: Promise<{ ok?: string; err?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; share?: string }>;
 };
 
 export default async function AdminHomePage({ params, searchParams }: Props) {
   const { schoolSlug } = await params;
   const sp = await searchParams;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  const shareUrl = sp.share ? new URL(sp.share, baseUrl).toString() : null;
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
@@ -72,6 +78,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
+      {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
       <div className="mb-5">
         <h1 className="text-xl font-semibold text-slate-900">{school.name}</h1>
         <p className="mt-1 text-sm text-slate-600">Qué hay próximo y qué falta por publicar.</p>

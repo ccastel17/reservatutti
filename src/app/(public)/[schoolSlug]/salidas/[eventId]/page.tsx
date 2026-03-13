@@ -1,10 +1,56 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getPublicTripDetailBySlugAndId } from "@/lib/data/publicTrips";
 import { ReservationForm } from "@/components/forms/ReservationForm";
 
 type Props = {
   params: Promise<{ schoolSlug: string; eventId: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { schoolSlug, eventId } = await params;
+
+  const detail = await getPublicTripDetailBySlugAndId({ schoolSlug, tripId: eventId });
+  if (!detail) return {};
+
+  const { trip } = detail;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+  const when = new Date(trip.starts_at).toLocaleString("es-ES", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const oneLine = (trip.description ?? "")
+    .split("\n")
+    .map((s) => s.trim())
+    .find(Boolean);
+
+  const description = `${when}${oneLine ? ` · ${oneLine}` : ""}`.slice(0, 180);
+  const url = new URL(`/${schoolSlug}/salidas/${eventId}`, baseUrl).toString();
+
+  return {
+    metadataBase: new URL(baseUrl),
+    title: trip.title,
+    description,
+    openGraph: {
+      type: "website",
+      url,
+      title: trip.title,
+      description,
+    },
+    twitter: {
+      card: "summary",
+      title: trip.title,
+      description,
+    },
+  };
+}
 
 export default async function PublicTripDetailPage({ params }: Props) {
   const { schoolSlug, eventId } = await params;

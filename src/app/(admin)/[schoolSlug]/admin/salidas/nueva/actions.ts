@@ -44,21 +44,29 @@ export async function createTrip(formData: FormData) {
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);
 
   const supabase = await getSupabaseServer();
-  const { error } = await supabase.from("events").insert({
-    school_id: school.id,
-    title: title.trim(),
-    description: description?.trim() ? description.trim() : null,
-    meeting_point: meetingPoint?.trim() ? meetingPoint.trim() : null,
-    starts_at: startsAt.toISOString(),
-    ends_at: endsAt.toISOString(),
-    capacity,
-    is_visible: true,
-    status: "scheduled",
-  });
+  const { data: inserted, error } = await supabase
+    .from("events")
+    .insert({
+      school_id: school.id,
+      title: title.trim(),
+      description: description?.trim() ? description.trim() : null,
+      meeting_point: meetingPoint?.trim() ? meetingPoint.trim() : null,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      capacity,
+      is_visible: true,
+      status: "scheduled",
+    })
+    .select("id")
+    .single();
 
   if (error) {
     redirect(`/${schoolSlug}/admin?err=${encodeURIComponent("No se pudo crear la salida.")}`);
   }
 
-  redirect(`/${schoolSlug}/admin?ok=${encodeURIComponent("Salida creada.")}`);
+  redirect(
+    `/${schoolSlug}/admin?ok=${encodeURIComponent("Salida creada.")}&share=${encodeURIComponent(
+      `/${schoolSlug}/salidas/${inserted.id}`
+    )}`
+  );
 }
