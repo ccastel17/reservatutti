@@ -20,7 +20,8 @@ export default async function PublicTripDetailPage({ params }: Props) {
   const canBook = trip.status === "scheduled" && spotsLeft > 0;
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-8">
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto w-full max-w-md px-4 py-8">
       <header className="space-y-2">
         <p className="text-sm text-slate-600">Salida</p>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{trip.title}</h1>
@@ -82,6 +83,7 @@ export default async function PublicTripDetailPage({ params }: Props) {
           <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{trip.description}</p>
         </section>
       ) : null}
-    </main>
+      </main>
+    </div>
   );
 }

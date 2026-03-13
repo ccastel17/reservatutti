@@ -1,14 +1,16 @@
 import { notFound } from "next/navigation";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { cancelTrip, closeTrip, reopenTrip } from "./actions";
+import { cancelReservation, cancelTrip, closeTrip, reopenTrip, updateCapacity } from "./actions";
 
 type Props = {
   params: Promise<{ schoolSlug: string; eventId: string }>;
+  searchParams: Promise<{ ok?: string; err?: string }>;
 };
 
-export default async function TripBookingsPage({ params }: Props) {
+export default async function TripBookingsPage({ params, searchParams }: Props) {
   const { schoolSlug, eventId } = await params;
+  const sp = await searchParams;
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
@@ -58,6 +60,8 @@ export default async function TripBookingsPage({ params }: Props) {
     .filter((r) => r.status === "confirmed")
     .reduce((sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0), 0);
 
+  const confirmedRows = rows.filter((r) => r.status === "confirmed");
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <h1 className="text-xl font-semibold text-slate-900">Inscritos</h1>
@@ -71,6 +75,17 @@ export default async function TripBookingsPage({ params }: Props) {
           minute: "2-digit",
         })}
       </p>
+
+      {sp.ok ? (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+          {sp.ok}
+        </div>
+      ) : null}
+      {sp.err ? (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {sp.err}
+        </div>
+      ) : null}
 
       {trip.status !== "scheduled" ? (
         <div
@@ -114,16 +129,41 @@ export default async function TripBookingsPage({ params }: Props) {
       </div>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-sm font-medium text-slate-900">
-          {confirmedPeople} / {trip.capacity} plazas ocupadas
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-900">
+              {confirmedPeople} / {trip.capacity} plazas ocupadas
+            </p>
+            <p className="mt-1 text-xs text-slate-500">Ordenados por orden de inscripción.</p>
+          </div>
+
+          <form action={updateCapacity} className="flex items-end gap-2">
+            <input type="hidden" name="schoolSlug" value={schoolSlug} />
+            <input type="hidden" name="eventId" value={eventId} />
+            <div>
+              <label className="block text-xs font-medium text-slate-600">Plazas</label>
+              <input
+                type="number"
+                name="capacity"
+                defaultValue={trip.capacity}
+                min={confirmedPeople}
+                max={200}
+                className="mt-1 w-24 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-900"
+                required
+              />
+            </div>
+            <button className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">
+              Guardar
+            </button>
+          </form>
+        </div>
       </div>
 
       <div className="mt-5 space-y-2">
         {rows.length === 0 ? (
           <p className="text-sm text-slate-600">Aún no hay nadie apuntado.</p>
         ) : (
-          rows.map((r) => {
+          confirmedRows.map((r, idx) => {
             const contact = r.contacts;
             const frequent = (contact?.reservations_count ?? 0) >= 2;
 
@@ -132,23 +172,37 @@ export default async function TripBookingsPage({ params }: Props) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
-                      {r.participant_name}{r.has_plus_one ? " (+1)" : ""}
+                      {idx + 1}. {r.participant_name}
+                      {r.has_plus_one ? " (+1)" : ""}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">{r.participant_phone_e164}</p>
                     <p className="mt-2 text-xs text-slate-500">
                       {frequent ? "Contacto frecuente" : "Contacto nuevo"}
                       {contact ? ` · ${contact.reservations_count} reservas` : ""}
                     </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {new Date(r.created_at).toLocaleString("es-ES", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                   </div>
-                  <span
-                    className={
-                      r.status === "confirmed"
-                        ? "rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-900"
-                        : "rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700"
-                    }
-                  >
-                    {r.status === "confirmed" ? "Confirmada" : "Cancelada"}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-900">
+                      Confirmada
+                    </span>
+
+                    <form action={cancelReservation}>
+                      <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                      <input type="hidden" name="eventId" value={eventId} />
+                      <input type="hidden" name="reservationId" value={r.id} />
+                      <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900">
+                        Eliminar
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             );
