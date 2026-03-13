@@ -9,6 +9,37 @@ export type PublicTripDetail = {
   spotsLeft: number;
 };
 
+export type PublicTripListRow = Pick<
+  Trip,
+  "id" | "title" | "starts_at" | "capacity" | "status" | "meeting_point"
+>;
+
+export async function getPublicUpcomingTripsBySlug(params: {
+  schoolSlug: string;
+}): Promise<{ schoolId: string; trips: PublicTripListRow[] } | null> {
+  const school = await getSchoolBySlug(params.schoolSlug);
+  if (!school) return null;
+
+  const supabase = getSupabaseAdmin();
+  const from = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, title, starts_at, capacity, status, meeting_point")
+    .eq("school_id", school.id)
+    .eq("is_visible", true)
+    .gte("starts_at", from)
+    .order("starts_at", { ascending: true })
+    .limit(50);
+
+  if (error) throw new Error(error.message);
+
+  return {
+    schoolId: school.id,
+    trips: (data ?? []) as unknown as PublicTripListRow[],
+  };
+}
+
 export async function getPublicTripDetailBySlugAndId(params: {
   schoolSlug: string;
   tripId: string;
