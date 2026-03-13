@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import {
@@ -29,7 +30,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const { data: trip, error: tripError } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status")
+    .select("id, title, starts_at, capacity, is_visible, status, meeting_point, description")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -74,16 +75,51 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <h1 className="text-xl font-semibold text-slate-900">Inscritos</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        {trip.title} ·{" "}
-        {new Date(trip.starts_at).toLocaleString("es-ES", {
-          weekday: "short",
-          day: "2-digit",
-          month: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </p>
+      <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Salida</p>
+            <p className="mt-1 text-lg font-semibold tracking-tight text-slate-900">{trip.title}</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">
+              {new Date(trip.starts_at).toLocaleString("es-ES", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+
+          <Link
+            href={`/${schoolSlug}/admin/salidas/${eventId}/editar`}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900"
+          >
+            Editar salida
+          </Link>
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm">
+          {trip.meeting_point ? (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Punto de encuentro</p>
+              <p className="mt-0.5 text-sm text-slate-800">{trip.meeting_point}</p>
+            </div>
+          ) : null}
+
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Plazas</p>
+            <p className="mt-0.5 text-sm text-slate-800">{confirmedPeople} / {trip.capacity} ocupadas</p>
+          </div>
+        </div>
+
+        {trip.description ? (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Detalles</p>
+            <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{trip.description}</p>
+          </div>
+        ) : null}
+      </section>
 
       {sp.ok ? (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
