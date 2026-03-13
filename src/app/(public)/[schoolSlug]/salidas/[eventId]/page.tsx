@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = `${when}${oneLine ? ` · ${oneLine}` : ""}`.slice(0, 180);
   const url = new URL(`/${schoolSlug}/salidas/${eventId}`, baseUrl).toString();
+  const ogImageUrl = new URL(`/${schoolSlug}/salidas/${eventId}/opengraph-image`, baseUrl).toString();
 
   return {
     metadataBase: new URL(baseUrl),
@@ -43,11 +44,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url,
       title: trip.title,
       description,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: trip.title,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: trip.title,
       description,
+      images: [ogImageUrl],
     },
   };
 }
