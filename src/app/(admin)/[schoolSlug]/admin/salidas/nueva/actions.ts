@@ -65,8 +65,8 @@ export async function createTrip(formData: FormData) {
   }
 
   redirect(
-    `/${schoolSlug}/admin?ok=${encodeURIComponent("Salida creada.")}&share=${encodeURIComponent(
-      `/${schoolSlug}/salidas/${inserted.id}`
-    )}`
+    `/${schoolSlug}/admin/salidas/${inserted.id}/inscritos?ok=${encodeURIComponent(
+      "Salida creada."
+    )}&share=${encodeURIComponent(`/${schoolSlug}/salidas/${inserted.id}`)}`
   );
 }

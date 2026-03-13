@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 import {
   addManualReservation,
   cancelReservation,
@@ -14,12 +15,19 @@ import {
 
 type Props = {
   params: Promise<{ schoolSlug: string; eventId: string }>;
-  searchParams: Promise<{ ok?: string; err?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; share?: string }>;
 };
 
 export default async function TripBookingsPage({ params, searchParams }: Props) {
   const { schoolSlug, eventId } = await params;
   const sp = await searchParams;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  const publicUrl = new URL(`/${schoolSlug}/salidas/${eventId}`, baseUrl).toString();
+  const shareUrl = sp.share ? new URL(sp.share, baseUrl).toString() : null;
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(publicUrl)}`;
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
@@ -74,7 +82,18 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
-      <h1 className="text-xl font-semibold text-slate-900">Inscritos</h1>
+      {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-slate-900">Inscritos</h1>
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white"
+        >
+          Enviar por WhatsApp
+        </a>
+      </div>
       <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
