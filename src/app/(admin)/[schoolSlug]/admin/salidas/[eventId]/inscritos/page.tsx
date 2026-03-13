@@ -96,48 +96,69 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         </div>
       ) : null}
 
-      <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-900">Añadir inscrito (manual)</h2>
-        <p className="mt-1 text-xs text-slate-500">Esto crea una reserva confirmada desde el panel.</p>
-
-        <form action={addManualReservation} className="mt-4 space-y-3">
-          <input type="hidden" name="schoolSlug" value={schoolSlug} />
-          <input type="hidden" name="eventId" value={eventId} />
-
+      <details className="group mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600">Nombre</label>
-            <input
-              name="participantName"
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
-              placeholder="Ej. Marta"
-              required
-            />
+            <h2 className="text-sm font-semibold text-slate-900">Añadir inscrito (manual)</h2>
+            <p className="mt-1 text-xs text-slate-500">Esto crea una reserva confirmada desde el panel.</p>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-600">Teléfono</label>
-            <input
-              name="participantPhone"
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
-              placeholder="Ej. 600 111 222"
-              inputMode="tel"
-              required
-            />
-          </div>
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-5 w-5 transition-transform group-open:rotate-180"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </summary>
 
-          <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <input type="checkbox" name="hasPlusOne" className="mt-1 h-4 w-4" />
+        <div className="px-4 pb-4">
+          <form action={addManualReservation} className="space-y-3">
+            <input type="hidden" name="schoolSlug" value={schoolSlug} />
+            <input type="hidden" name="eventId" value={eventId} />
+
             <div>
-              <p className="text-sm font-medium text-slate-900">Añadir +1</p>
-              <p className="text-xs text-slate-600">Solo para contactos frecuentes (o marcados como frecuentes).</p>
+              <label className="block text-xs font-medium text-slate-600">Nombre</label>
+              <input
+                name="participantName"
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+                placeholder="Ej. Marta"
+                required
+              />
             </div>
-          </label>
 
-          <button className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
-            Añadir
-          </button>
-        </form>
-      </section>
+            <div>
+              <label className="block text-xs font-medium text-slate-600">Teléfono</label>
+              <input
+                name="participantPhone"
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+                placeholder="Ej. 600 111 222"
+                inputMode="tel"
+                required
+              />
+            </div>
+
+            <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <input type="checkbox" name="hasPlusOne" className="mt-1 h-4 w-4" />
+              <div>
+                <p className="text-sm font-medium text-slate-900">Añadir +1</p>
+                <p className="text-xs text-slate-600">
+                  Solo para contactos frecuentes (o marcados como frecuentes).
+                </p>
+              </div>
+            </label>
+
+            <button className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
+              Añadir
+            </button>
+          </form>
+        </div>
+      </details>
 
       {trip.status !== "scheduled" ? (
         <div
