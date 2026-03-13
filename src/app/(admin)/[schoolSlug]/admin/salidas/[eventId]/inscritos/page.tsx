@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { cancelReservation, cancelTrip, closeTrip, reopenTrip, updateCapacity } from "./actions";
+import {
+  addManualReservation,
+  cancelReservation,
+  cancelTrip,
+  closeTrip,
+  reopenTrip,
+  toggleContactFrequent,
+  updateCapacity,
+} from "./actions";
 
 type Props = {
   params: Promise<{ schoolSlug: string; eventId: string }>;
@@ -32,7 +40,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   const { data: reservations, error } = await supabase
     .from("reservations")
     .select(
-      "id, status, participant_name, participant_phone_e164, has_plus_one, created_at, contacts ( id, full_name, phone_e164, reservations_count )"
+      "id, status, participant_name, participant_phone_e164, has_plus_one, created_at, contacts ( id, full_name, phone_e164, reservations_count, is_frequent_override )"
     )
     .eq("school_id", school.id)
     .eq("event_id", eventId)
@@ -53,6 +61,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         full_name: string;
         phone_e164: string;
         reservations_count: number;
+        is_frequent_override: boolean;
       } | null;
     }>;
 
@@ -86,6 +95,49 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
           {sp.err}
         </div>
       ) : null}
+
+      <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-sm font-semibold text-slate-900">Añadir inscrito (manual)</h2>
+        <p className="mt-1 text-xs text-slate-500">Esto crea una reserva confirmada desde el panel.</p>
+
+        <form action={addManualReservation} className="mt-4 space-y-3">
+          <input type="hidden" name="schoolSlug" value={schoolSlug} />
+          <input type="hidden" name="eventId" value={eventId} />
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Nombre</label>
+            <input
+              name="participantName"
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+              placeholder="Ej. Marta"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Teléfono</label>
+            <input
+              name="participantPhone"
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+              placeholder="Ej. 600 111 222"
+              inputMode="tel"
+              required
+            />
+          </div>
+
+          <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <input type="checkbox" name="hasPlusOne" className="mt-1 h-4 w-4" />
+            <div>
+              <p className="text-sm font-medium text-slate-900">Añadir +1</p>
+              <p className="text-xs text-slate-600">Solo para contactos frecuentes (o marcados como frecuentes).</p>
+            </div>
+          </label>
+
+          <button className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
+            Añadir
+          </button>
+        </form>
+      </section>
 
       {trip.status !== "scheduled" ? (
         <div
@@ -165,7 +217,8 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         ) : (
           confirmedRows.map((r, idx) => {
             const contact = r.contacts;
-            const frequent = (contact?.reservations_count ?? 0) >= 2;
+            const frequent =
+              Boolean(contact?.is_frequent_override) || (contact?.reservations_count ?? 0) >= 2;
 
             return (
               <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -193,6 +246,22 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
                     <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-900">
                       Confirmada
                     </span>
+
+                    {contact ? (
+                      <form action={toggleContactFrequent}>
+                        <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                        <input type="hidden" name="eventId" value={eventId} />
+                        <input type="hidden" name="contactId" value={contact.id} />
+                        <input
+                          type="hidden"
+                          name="isFrequentOverride"
+                          value={contact.is_frequent_override ? "false" : "true"}
+                        />
+                        <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900">
+                          {contact.is_frequent_override ? "Quitar frecuente" : "Marcar frecuente"}
+                        </button>
+                      </form>
+                    ) : null}
 
                     <form action={cancelReservation}>
                       <input type="hidden" name="schoolSlug" value={schoolSlug} />

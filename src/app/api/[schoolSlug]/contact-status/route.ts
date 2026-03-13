@@ -34,7 +34,7 @@ export async function GET(
 
   const { data: contact, error } = await supabase
     .from("contacts")
-    .select("reservations_count")
+    .select("reservations_count, is_frequent_override")
     .eq("school_id", school.id)
     .eq("phone_e164", phoneE164)
     .maybeSingle();
@@ -44,5 +44,6 @@ export async function GET(
   }
 
   const reservationsCount = contact?.reservations_count ?? 0;
-  return NextResponse.json({ isFrequent: reservationsCount >= 2 }, { status: 200 });
+  const override = Boolean(contact?.is_frequent_override);
+  return NextResponse.json({ isFrequent: override || reservationsCount >= 2 }, { status: 200 });
 }

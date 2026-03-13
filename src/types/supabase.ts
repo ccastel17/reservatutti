@@ -99,6 +99,7 @@ export type Database = {
           phone_e164: string;
           full_name: string;
           reservations_count: number;
+          is_frequent_override: boolean;
           first_reserved_at: string | null;
           last_reserved_at: string | null;
           created_at: string;
@@ -110,6 +111,7 @@ export type Database = {
           phone_e164: string;
           full_name: string;
           reservations_count?: number;
+          is_frequent_override?: boolean;
           first_reserved_at?: string | null;
           last_reserved_at?: string | null;
           created_at?: string;
@@ -121,6 +123,7 @@ export type Database = {
           phone_e164?: string;
           full_name?: string;
           reservations_count?: number;
+          is_frequent_override?: boolean;
           first_reserved_at?: string | null;
           last_reserved_at?: string | null;
           created_at?: string;

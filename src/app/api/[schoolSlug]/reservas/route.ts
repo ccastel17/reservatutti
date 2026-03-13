@@ -75,7 +75,7 @@ export async function POST(
   // Determine if contact is frequent
   const { data: existingContact, error: contactError } = await supabase
     .from("contacts")
-    .select("id, reservations_count")
+    .select("id, reservations_count, is_frequent_override")
     .eq("school_id", school.id)
     .eq("phone_e164", phoneE164)
     .maybeSingle();
@@ -84,7 +84,9 @@ export async function POST(
     return NextResponse.json({ error: "No se pudo comprobar el contacto." }, { status: 500 });
   }
 
-  const isFrequent = (existingContact?.reservations_count ?? 0) >= 2;
+  const isFrequent =
+    Boolean(existingContact?.is_frequent_override) ||
+    (existingContact?.reservations_count ?? 0) >= 2;
 
   if (body.data.hasPlusOne && !isFrequent) {
     return NextResponse.json(
