@@ -24,6 +24,52 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
   });
   const hidden = await getHiddenTripsBySchoolId(supabase, school.id);
 
+  const upcomingIds = upcomingVisible.map((t) => t.id);
+  const reservationsByEventId = new Map<
+    string,
+    Array<{
+      id: string;
+      participant_name: string;
+      participant_phone_e164: string;
+      has_plus_one: boolean;
+      created_at: string;
+    }>
+  >();
+
+  if (upcomingIds.length > 0) {
+    const { data: reservations, error } = await supabase
+      .from("reservations")
+      .select("id, event_id, participant_name, participant_phone_e164, has_plus_one, created_at")
+      .eq("school_id", school.id)
+      .eq("status", "confirmed")
+      .in("event_id", upcomingIds)
+      .order("created_at", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    const rows =
+      (reservations ?? []) as Array<{
+        id: string;
+        event_id: string;
+        participant_name: string;
+        participant_phone_e164: string;
+        has_plus_one: boolean;
+        created_at: string;
+      }>;
+
+    for (const r of rows) {
+      const list = reservationsByEventId.get(r.event_id) ?? [];
+      list.push({
+        id: r.id,
+        participant_name: r.participant_name,
+        participant_phone_e164: r.participant_phone_e164,
+        has_plus_one: r.has_plus_one,
+        created_at: r.created_at,
+      });
+      reservationsByEventId.set(r.event_id, list);
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <div className="mb-5">
@@ -63,37 +109,63 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           {upcomingVisible.length === 0 ? (
             <p className="text-sm text-slate-600">Aún no hay salidas publicadas.</p>
           ) : (
-            upcomingVisible.map((t) => (
-              <Link
-                key={t.id}
-                href={`/${schoolSlug}/admin/salidas/${t.id}/inscritos`}
-                className="block rounded-xl border border-slate-200 bg-white p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-semibold text-slate-900">{t.title}</p>
-                  {t.status !== "scheduled" ? (
-                    <span
-                      className={
-                        t.status === "cancelled"
-                          ? "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900"
-                          : "rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700"
-                      }
-                    >
-                      {t.status === "cancelled" ? "Cancelada" : "Cerrada"}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-sm text-slate-600">
-                  {new Date(t.starts_at).toLocaleString("es-ES", {
-                    weekday: "short",
-                    day: "2-digit",
-                    month: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </Link>
-            ))
+            upcomingVisible.map((t) => {
+              const reservations = reservationsByEventId.get(t.id) ?? [];
+              const occupied = reservations.reduce(
+                (sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0),
+                0
+              );
+
+              return (
+                <Link
+                  key={t.id}
+                  href={`/${schoolSlug}/admin/salidas/${t.id}/inscritos`}
+                  className="block rounded-xl border border-slate-200 bg-white p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                    {t.status !== "scheduled" ? (
+                      <span
+                        className={
+                          t.status === "cancelled"
+                            ? "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900"
+                            : "rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700"
+                        }
+                      >
+                        {t.status === "cancelled" ? "Cancelada" : "Cerrada"}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-1 text-sm text-slate-600">
+                    {new Date(t.starts_at).toLocaleString("es-ES", {
+                      weekday: "short",
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    {occupied} / {t.capacity} plazas
+                  </p>
+
+                  {reservations.length > 0 ? (
+                    <div className="mt-2 space-y-1">
+                      {reservations.map((r, idx) => (
+                        <p key={r.id} className="text-xs text-slate-600">
+                          {idx + 1}. {r.participant_name}
+                          {r.has_plus_one ? " (+1)" : ""} · {r.participant_phone_e164}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-500">Aún no hay inscritos.</p>
+                  )}
+                </Link>
+              );
+            })
           )}
         </div>
       </section>
