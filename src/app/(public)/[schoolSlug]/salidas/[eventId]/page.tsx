@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = `${when}${oneLine ? ` · ${oneLine}` : ""}`.slice(0, 180);
   const url = new URL(`/${schoolSlug}/salidas/${eventId}`, baseUrl).toString();
-  const ogImageUrl = new URL(`/${schoolSlug}/salidas/${eventId}/opengraph-image`, baseUrl).toString();
+  const ogLogoUrl = new URL(`/garbi.png`, baseUrl).toString();
+  const ogDynamicUrl = new URL(`/${schoolSlug}/salidas/${eventId}/opengraph-image`, baseUrl).toString();
 
   return {
     metadataBase: new URL(baseUrl),
@@ -46,7 +47,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: [
         {
-          url: ogImageUrl,
+          url: ogLogoUrl,
+          width: 1200,
+          height: 630,
+          alt: trip.title,
+        },
+        {
+          url: ogDynamicUrl,
           width: 1200,
           height: 630,
           alt: trip.title,
@@ -57,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: trip.title,
       description,
-      images: [ogImageUrl],
+      images: [ogLogoUrl],
     },
   };
 }
