@@ -20,17 +20,18 @@ export default async function OccurrencesPage({ params }: Props) {
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
-      <h1 className="text-xl font-semibold text-slate-900">Salidas ocultas</h1>
-      <p className="mt-1 text-sm text-slate-600">Estas salidas no aparecen en la parte pública.</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
+      <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Salidas ocultas</h1>
+      <p className="mt-1 text-sm text-muted">Estas salidas no aparecen en la parte pública.</p>
 
       <div className="mt-5 space-y-3">
         {hidden.length === 0 ? (
-          <p className="text-sm text-slate-600">No hay salidas ocultas.</p>
+          <p className="text-sm text-muted">No hay salidas ocultas.</p>
         ) : (
           hidden.map((t) => (
-            <div key={t.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-sm font-semibold text-slate-900">{t.title}</p>
-              <p className="mt-1 text-sm text-slate-600">
+            <div key={t.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <p className="text-sm font-semibold text-sea">{t.title}</p>
+              <p className="mt-1 text-sm text-muted">
                 {new Date(t.starts_at).toLocaleString("es-ES", {
                   weekday: "long",
                   day: "2-digit",
@@ -43,7 +44,7 @@ export default async function OccurrencesPage({ params }: Props) {
               <form action={publishOccurrence} className="mt-4">
                 <input type="hidden" name="schoolSlug" value={schoolSlug} />
                 <input type="hidden" name="eventId" value={t.id} />
-                <button className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
+                <button className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm">
                   Hacer visible
                 </button>
               </form>

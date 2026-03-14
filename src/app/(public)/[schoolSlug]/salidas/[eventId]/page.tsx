@@ -91,16 +91,16 @@ export default async function PublicTripDetailPage({ params }: Props) {
           : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto w-full max-w-md px-4 py-8">
         <header className="space-y-2">
-          <p className="text-sm text-slate-600">Salida</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Salida</p>
         </header>
 
-        <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{trip.title}</h1>
+        <section className="mt-3 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <h1 className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</h1>
 
-          <p className="mt-3 text-base font-semibold text-slate-900">
+          <p className="mt-3 text-base font-semibold text-sea">
             {new Date(trip.starts_at).toLocaleString("es-ES", {
               weekday: "long",
               day: "2-digit",
@@ -113,21 +113,21 @@ export default async function PublicTripDetailPage({ params }: Props) {
           <div className="mt-4 space-y-2 text-sm">
             {trip.meeting_point ? (
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Punto de encuentro</p>
-                <p className="mt-0.5 text-sm text-slate-800">{trip.meeting_point}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">Punto de encuentro</p>
+                <p className="mt-0.5 text-sm text-sea">{trip.meeting_point}</p>
               </div>
             ) : null}
 
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Plazas</p>
-              <p className="mt-0.5 text-sm text-slate-800">{spotsLeft} disponibles</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Plazas</p>
+              <p className="mt-0.5 text-sm text-sea">{spotsLeft} disponibles</p>
             </div>
           </div>
 
           {trip.description ? (
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Detalles</p>
-              <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{trip.description}</p>
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Detalles</p>
+              <p className="mt-2 text-sm text-muted whitespace-pre-wrap">{trip.description}</p>
             </div>
           ) : null}
         </section>
@@ -136,20 +136,20 @@ export default async function PublicTripDetailPage({ params }: Props) {
           <div
             className={
               trip.status === "cancelled"
-                ? "mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
-                : "mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800"
+                ? "mt-6 rounded-2xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral"
+                : "mt-6 rounded-2xl border border-border bg-surface-2 p-4 text-sm text-sea"
             }
           >
-            <p className="font-semibold">Aviso</p>
-            <p className="mt-1">{warningText}</p>
+            <p className="font-semibold text-sea">Aviso</p>
+            <p className="mt-1 text-muted">{warningText}</p>
           </div>
         ) : null}
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">Apúntate</h2>
-        <p className="mt-1 text-sm text-slate-600">Son dos datos y listo.</p>
+      <section className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-sea">Apúntate</h2>
+        <p className="mt-1 text-sm text-muted">Son dos datos y listo.</p>
         {!canBook ? (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <div className="mt-4 rounded-xl border border-border bg-surface-2 p-4 text-sm text-sea">
             {trip.status === "cancelled"
               ? "No puedes apuntarte porque la salida está cancelada."
               : trip.status === "closed"

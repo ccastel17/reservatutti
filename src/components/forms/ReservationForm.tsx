@@ -93,31 +93,31 @@ export function ReservationForm(props: Props) {
   return (
     <form onSubmit={onSubmit} className="mt-6 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700">Tu nombre</label>
+        <label className="block text-sm font-medium text-sea">Tu nombre</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+          className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
           placeholder="Ej. Carlos"
           autoComplete="name"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700">Tu teléfono</label>
+        <label className="block text-sm font-medium text-sea">Tu teléfono</label>
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+          className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
           placeholder="Ej. 600 111 222"
           inputMode="tel"
           autoComplete="tel"
         />
-        <p className="mt-2 text-xs text-slate-500">Lo usamos solo para gestionar la lista de inscritos.</p>
+        <p className="mt-2 text-xs text-muted">Lo usamos solo para gestionar la lista de inscritos.</p>
       </div>
 
       {isFrequent ? (
-        <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <label className="flex items-start gap-3 rounded-xl border border-border bg-surface-2 p-4">
           <input
             type="checkbox"
             checked={hasPlusOne}
@@ -125,14 +125,14 @@ export function ReservationForm(props: Props) {
             className="mt-1 h-4 w-4"
           />
           <div>
-            <p className="text-sm font-medium text-slate-900">Voy con acompañante (+1)</p>
-            <p className="text-xs text-slate-600">Ocuparás dos plazas.</p>
+            <p className="text-sm font-semibold text-sea">Voy con acompañante (+1)</p>
+            <p className="text-xs text-muted">Ocuparás dos plazas.</p>
           </div>
         </label>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
           {error}
         </div>
       ) : null}
@@ -140,12 +140,12 @@ export function ReservationForm(props: Props) {
       <button
         type="submit"
         disabled={!canSubmit || props.spotsLeft <= 0}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
       >
         {props.spotsLeft <= 0 ? "Plazas agotadas" : submitting ? "Apuntándote…" : "Apuntarme"}
       </button>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         Al apuntarte aceptas que la escuela use tu contacto para organizar la salida.
       </p>
     </form>

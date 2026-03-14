@@ -17,60 +17,67 @@ export default async function PublicSchoolHomePage({ params }: Props) {
   const trips = listing?.trips ?? [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto w-full max-w-md px-4 py-8">
-      <header className="space-y-2">
-        <p className="text-sm text-slate-600">{school.slug}</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{school.name}</h1>
-        <p className="text-sm text-slate-600">Próximas salidas publicadas</p>
-      </header>
+        <header className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">{school.slug}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-sea">{school.name}</h1>
+          <p className="text-sm text-muted">Próximas salidas publicadas</p>
+        </header>
 
       <section className="mt-6 space-y-2">
         {trips.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-900">No hay salidas publicadas ahora mismo.</p>
-            <p className="mt-1 text-sm text-slate-600">Vuelve más tarde.</p>
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <p className="text-sm font-semibold text-sea">No hay salidas publicadas ahora mismo.</p>
+            <p className="mt-1 text-sm text-muted">Vuelve más tarde.</p>
           </div>
         ) : (
           trips.map((t) => (
             <Link
               key={t.id}
               href={`/${schoolSlug}/salidas/${t.id}`}
-              className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="block rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                <div>
+                  <p className="text-base font-semibold text-sea">{t.title}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                      {new Date(t.starts_at).toLocaleString("es-ES", {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {t.meeting_point ? (
+                      <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-medium text-sea">
+                        {t.meeting_point}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
                 {t.status !== "scheduled" ? (
                   <span
                     className={
                       t.status === "cancelled"
-                        ? "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900"
-                        : "rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700"
+                        ? "rounded-full bg-coral/15 px-2.5 py-1 text-xs font-semibold text-coral"
+                        : "rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-muted"
                     }
                   >
                     {t.status === "cancelled" ? "Cancelada" : "Cerrada"}
                   </span>
                 ) : null}
               </div>
-
-              <p className="mt-1 text-sm text-slate-600">
-                {new Date(t.starts_at).toLocaleString("es-ES", {
-                  weekday: "short",
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-
-              {t.meeting_point ? <p className="mt-1 text-sm text-slate-600">{t.meeting_point}</p> : null}
             </Link>
           ))
         )}
       </section>
 
       <footer className="mt-8">
-        <Link href={`/${schoolSlug}/admin`} className="text-sm font-medium text-slate-600">
+        <Link href={`/${schoolSlug}/admin`} className="text-sm font-semibold text-muted">
           Acceso organizadores
         </Link>
       </footer>

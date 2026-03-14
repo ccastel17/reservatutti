@@ -33,9 +33,9 @@ export default async function EditTripTextsPage({ params, searchParams }: Props)
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Salida</p>
-          <h1 className="mt-1 text-xl font-semibold text-slate-900">Editar textos</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Salida</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Editar textos</h1>
+          <p className="mt-1 text-sm text-muted">
             {new Date(trip.starts_at).toLocaleString("es-ES", {
               weekday: "short",
               day: "2-digit",
@@ -48,61 +48,61 @@ export default async function EditTripTextsPage({ params, searchParams }: Props)
 
         <Link
           href={`/${schoolSlug}/admin/salidas/${eventId}/inscritos`}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900"
+          className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
         >
           Volver
         </Link>
       </div>
 
       {sp.ok ? (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-xl border border-brand/30 bg-brand-50 p-3 text-sm text-brand-700">
           {sp.ok}
         </div>
       ) : null}
       {sp.err ? (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{sp.err}</div>
+        <div className="mt-4 rounded-xl border border-coral/30 bg-coral/10 p-3 text-sm text-coral">{sp.err}</div>
       ) : null}
 
-      <form action={updateTripTexts} className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+      <form action={updateTripTexts} className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <input type="hidden" name="schoolSlug" value={schoolSlug} />
         <input type="hidden" name="eventId" value={eventId} />
 
         <div>
-          <label className="block text-xs font-medium text-slate-600">Título</label>
+          <label className="block text-xs font-medium text-muted">Título</label>
           <input
             name="title"
             defaultValue={trip.title}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+            className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
             placeholder="Ej. Ruta de la sal"
             required
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600">Punto de encuentro</label>
+          <label className="block text-xs font-medium text-muted">Punto de encuentro</label>
           <input
             name="meetingPoint"
             defaultValue={trip.meeting_point ?? ""}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+            className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
             placeholder="Ej. Port Ginesta"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600">Detalles</label>
+          <label className="block text-xs font-medium text-muted">Detalles</label>
           <textarea
             name="description"
             defaultValue={trip.description ?? ""}
             rows={6}
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+            className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
             placeholder="Ej. Salida para navegantes intrépidos."
           />
         </div>
 
-        <button className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">Guardar</button>
+        <button className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm">Guardar</button>
       </form>
 
-      <p className="mt-3 text-xs text-slate-500">Solo puedes editar textos. Fechas y horarios no se modifican aquí.</p>
+      <p className="mt-3 text-xs text-muted">Solo puedes editar textos. Fechas y horarios no se modifican aquí.</p>
     </main>
   );
 }

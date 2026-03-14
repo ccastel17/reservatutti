@@ -26,7 +26,7 @@ export function ShareTripButtons({ publicUrl, whatsappHref }: Props) {
         href={whatsappHref}
         target="_blank"
         rel="noreferrer"
-        className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white"
+        className="rounded-xl bg-brand px-3 py-2 text-xs font-semibold text-white shadow-sm"
       >
         Enviar por WhatsApp
       </a>
@@ -34,7 +34,7 @@ export function ShareTripButtons({ publicUrl, whatsappHref }: Props) {
       <button
         type="button"
         onClick={onCopy}
-        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900"
+        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
       >
         {copied ? "Copiado" : "Copiar link"}
       </button>

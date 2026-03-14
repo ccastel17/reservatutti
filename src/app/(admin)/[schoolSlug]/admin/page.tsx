@@ -80,8 +80,9 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
     <main className="mx-auto w-full max-w-md px-4 py-6">
       {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
       <div className="mb-5">
-        <h1 className="text-xl font-semibold text-slate-900">{school.name}</h1>
-        <p className="mt-1 text-sm text-slate-600">Qué hay próximo y qué falta por publicar.</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">{school.name}</h1>
+        <p className="mt-1 text-sm text-muted">Qué hay próximo y qué falta por publicar.</p>
       </div>
 
       {sp.ok ? (
@@ -98,23 +99,23 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <Link
           href={`/${schoolSlug}/admin/salidas/nueva`}
-          className="rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white"
+          className="rounded-xl bg-brand px-4 py-3 text-center text-sm font-semibold text-white shadow-sm"
         >
           Nueva salida
         </Link>
         <Link
           href={`/${schoolSlug}/admin/series/nueva`}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900"
+          className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-sea shadow-sm"
         >
           Salida semanal
         </Link>
       </div>
 
       <section className="mt-8">
-        <h2 className="text-base font-semibold text-slate-900">Próximas salidas publicadas</h2>
+        <h2 className="text-base font-semibold text-sea">Próximas salidas publicadas</h2>
         <div className="mt-3 space-y-2">
           {upcomingVisible.length === 0 ? (
-            <p className="text-sm text-slate-600">Aún no hay salidas publicadas.</p>
+            <p className="text-sm text-muted">Aún no hay salidas publicadas.</p>
           ) : (
             upcomingVisible.map((t) => {
               const reservations = reservationsByEventId.get(t.id) ?? [];
@@ -127,16 +128,27 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                 <Link
                   key={t.id}
                   href={`/${schoolSlug}/admin/salidas/${t.id}/inscritos`}
-                  className="block rounded-xl border border-slate-200 bg-white p-4"
+                  className="block rounded-2xl border border-border bg-surface p-4 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                    <div>
+                      <p className="text-sm font-semibold text-sea">{t.title}</p>
+                      <p className="mt-1 text-xs font-semibold text-brand-700">
+                        {new Date(t.starts_at).toLocaleString("es-ES", {
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                     {t.status !== "scheduled" ? (
                       <span
                         className={
                           t.status === "cancelled"
-                            ? "rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900"
-                            : "rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700"
+                            ? "rounded-full bg-coral/15 px-2.5 py-1 text-xs font-semibold text-coral"
+                            : "rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-muted"
                         }
                       >
                         {t.status === "cancelled" ? "Cancelada" : "Cerrada"}
@@ -144,31 +156,24 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                     ) : null}
                   </div>
 
-                  <p className="mt-1 text-sm text-slate-600">
-                    {new Date(t.starts_at).toLocaleString("es-ES", {
-                      weekday: "short",
-                      day: "2-digit",
-                      month: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-
-                  <p className="mt-2 text-xs text-slate-500">
-                    {occupied} / {t.capacity} plazas
-                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-xs text-muted">{occupied} / {t.capacity} plazas</p>
+                    <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-medium text-sea">
+                      Ver inscritos
+                    </span>
+                  </div>
 
                   {reservations.length > 0 ? (
                     <div className="mt-2 space-y-1">
                       {reservations.map((r, idx) => (
-                        <p key={r.id} className="text-xs text-slate-600">
+                        <p key={r.id} className="text-xs text-muted">
                           {idx + 1}. {r.participant_name}
                           {r.has_plus_one ? " (+1)" : ""} · {r.participant_phone_e164}
                         </p>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 text-xs text-slate-500">Aún no hay inscritos.</p>
+                    <p className="mt-2 text-xs text-muted">Aún no hay inscritos.</p>
                   )}
                 </Link>
               );

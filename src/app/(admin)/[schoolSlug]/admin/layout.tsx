@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
+import { AdminTopTabs } from "@/components/admin/AdminTopTabs";
 
 export default async function AdminLayout({
   children,
@@ -15,15 +16,13 @@ export default async function AdminLayout({
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-md items-center justify-between px-4 py-4">
-          <Link href={`/${schoolSlug}/admin`} className="text-sm font-semibold text-slate-900">
-            Panel
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-surface/80 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-3 px-4 py-4">
+          <Link href={`/${schoolSlug}/admin`} className="text-sm font-semibold text-sea">
+            Reservatutti
           </Link>
-          <Link href={`/${schoolSlug}`} className="text-sm font-medium text-slate-600">
-            Ver público
-          </Link>
+          <AdminTopTabs schoolSlug={schoolSlug} />
         </div>
       </header>
 

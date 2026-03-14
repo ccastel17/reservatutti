@@ -43,17 +43,18 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-10">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Entrar</h1>
-        <p className="mt-2 text-sm text-slate-700">Te enviaremos un enlace para acceder al panel.</p>
+      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Entrar</h1>
+        <p className="mt-2 text-sm text-muted">Te enviaremos un enlace para acceder al panel.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Email</label>
+            <label className="block text-sm font-medium text-sea">Email</label>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-900"
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
               placeholder="tu@escuela.com"
               autoComplete="email"
               inputMode="email"
@@ -61,13 +62,13 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
           </div>
 
           {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
               {error}
             </div>
           ) : null}
 
           {message ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+            <div className="rounded-xl border border-brand/30 bg-brand-50 p-4 text-sm text-brand-700">
               {message}
             </div>
           ) : null}
@@ -75,7 +76,7 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
           <button
             type="submit"
             disabled={!canSubmit || sending}
-            className="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {sending ? "Enviando…" : "Enviar enlace"}
           </button>
