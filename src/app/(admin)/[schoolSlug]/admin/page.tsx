@@ -81,8 +81,8 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
       {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
       <div className="mb-5">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">{school.name}</h1>
-        <p className="mt-1 text-sm text-muted">Qué hay próximo y qué falta por publicar.</p>
+        <h1 className="mt-1 text-4xl font-semibold tracking-tight text-sea">{school.name}</h1>
+        <p className="mt-2 text-base text-muted">Qué hay próximo y qué falta por publicar.</p>
       </div>
 
       {sp.ok ? (
@@ -105,7 +105,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
         </Link>
         <Link
           href={`/${schoolSlug}/admin/series/nueva`}
-          className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-sea shadow-sm"
+          className="rounded-xl border border-brand bg-surface px-4 py-3 text-center text-sm font-semibold text-brand shadow-sm"
         >
           Salida semanal
         </Link>
@@ -132,8 +132,8 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-sea">{t.title}</p>
-                      <p className="mt-1 text-xs font-semibold text-brand-700">
+                      <p className="text-2xl font-semibold tracking-tight text-sea">{t.title}</p>
+                      <p className="mt-2 text-base font-semibold text-brand-700">
                         {new Date(t.starts_at).toLocaleString("es-ES", {
                           weekday: "short",
                           day: "2-digit",
@@ -157,23 +157,23 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                   </div>
 
                   <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-muted">{occupied} / {t.capacity} plazas</p>
-                    <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-medium text-sea">
-                      Ver inscritos
+                    <p className="text-sm text-muted">{occupied} / {t.capacity} plazas</p>
+                    <span className="inline-flex items-center justify-center rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-sea shadow-sm">
+                      Ver salida
                     </span>
                   </div>
 
                   {reservations.length > 0 ? (
                     <div className="mt-2 space-y-1">
                       {reservations.map((r, idx) => (
-                        <p key={r.id} className="text-xs text-muted">
+                        <p key={r.id} className="text-sm text-muted">
                           {idx + 1}. {r.participant_name}
                           {r.has_plus_one ? " (+1)" : ""} · {r.participant_phone_e164}
                         </p>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 text-xs text-muted">Aún no hay inscritos.</p>
+                    <p className="mt-2 text-sm text-muted">Aún no hay inscritos.</p>
                   )}
                 </Link>
               );
@@ -184,19 +184,19 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
 
       <section className="mt-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-900">Programadas (ocultas)</h2>
-          <Link href={`/${schoolSlug}/admin/ocurrencias`} className="text-sm font-medium text-slate-600">
+          <h2 className="text-base font-semibold text-sea">Programadas (ocultas)</h2>
+          <Link href={`/${schoolSlug}/admin/ocurrencias`} className="text-sm font-medium text-muted">
             Gestionar
           </Link>
         </div>
         <div className="mt-3 space-y-2">
           {hidden.length === 0 ? (
-            <p className="text-sm text-slate-600">No tienes salidas ocultas.</p>
+            <p className="text-sm text-muted">No tienes salidas ocultas.</p>
           ) : (
             hidden.slice(0, 5).map((t) => (
-              <div key={t.id} className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-sm font-semibold text-slate-900">{t.title}</p>
-                <p className="mt-1 text-sm text-slate-600">
+              <div key={t.id} className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+                <p className="text-sm font-semibold text-sea">{t.title}</p>
+                <p className="mt-1 text-sm text-muted">
                   {new Date(t.starts_at).toLocaleString("es-ES", {
                     weekday: "short",
                     day: "2-digit",
