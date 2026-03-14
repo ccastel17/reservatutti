@@ -11,8 +11,11 @@ export type PublicTripDetail = {
 
 export type PublicTripListRow = Pick<
   Trip,
-  "id" | "title" | "starts_at" | "capacity" | "status" | "meeting_point"
->;
+  "id" | "title" | "starts_at" | "ends_at" | "capacity" | "status" | "meeting_point" | "description"
+> & {
+  occupied: number;
+  spotsLeft: number;
+};
 
 export async function getPublicUpcomingTripsBySlug(params: {
   schoolSlug: string;
@@ -25,7 +28,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, status, meeting_point")
+    .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description")
     .eq("school_id", school.id)
     .eq("is_visible", true)
     .gte("starts_at", from)
@@ -34,9 +37,50 @@ export async function getPublicUpcomingTripsBySlug(params: {
 
   if (error) throw new Error(error.message);
 
+  const trips = (data ?? []) as unknown as Array<
+    Pick<
+      Trip,
+      "id" | "title" | "starts_at" | "ends_at" | "capacity" | "status" | "meeting_point" | "description"
+    >
+  >;
+
+  const tripIds = trips.map((t) => t.id);
+
+  const occupiedByEventId = new Map<string, number>();
+  for (const id of tripIds) occupiedByEventId.set(id, 0);
+
+  if (tripIds.length > 0) {
+    const { data: reservations, error: resError } = await supabase
+      .from("reservations")
+      .select("event_id, has_plus_one")
+      .eq("school_id", school.id)
+      .eq("status", "confirmed")
+      .in("event_id", tripIds);
+
+    if (resError) throw new Error(resError.message);
+
+    const reservationRows = (reservations ?? []) as Array<{ event_id: string; has_plus_one: boolean }>;
+
+    for (const r of reservationRows) {
+      const current = occupiedByEventId.get(r.event_id) ?? 0;
+      occupiedByEventId.set(r.event_id, current + 1 + (r.has_plus_one ? 1 : 0));
+    }
+  }
+
+  const enriched: PublicTripListRow[] = trips.map((t) => {
+    const occupied = occupiedByEventId.get(t.id) ?? 0;
+    const spotsLeft = Math.max(0, t.capacity - occupied);
+
+    return {
+      ...t,
+      occupied,
+      spotsLeft,
+    };
+  });
+
   return {
     schoolId: school.id,
-    trips: (data ?? []) as unknown as PublicTripListRow[],
+    trips: enriched,
   };
 }
 
