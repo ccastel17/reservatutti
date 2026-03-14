@@ -118,6 +118,21 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const confirmedRows = rows.filter((r) => r.status === "confirmed");
 
+  const whenFull = new Date(trip.starts_at).toLocaleString("es-ES", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const statusBadge =
+    trip.status === "cancelled"
+      ? { label: "Cancelada", className: "bg-coral/15 text-coral" }
+      : trip.status === "closed"
+        ? { label: "Cerrada", className: "bg-surface-2 text-muted" }
+        : null;
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
@@ -129,16 +144,23 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted">Salida</p>
-            <p className="mt-1 text-lg font-semibold tracking-tight text-sea">{trip.title}</p>
-            <p className="mt-2 text-sm font-semibold text-sea">
-              {new Date(trip.starts_at).toLocaleString("es-ES", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <p className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</p>
+              {statusBadge ? (
+                <span className={`mt-0.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
+                  {statusBadge.label}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                {whenFull}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">
+                {confirmedPeople} / {trip.capacity} plazas
+              </span>
+            </div>
           </div>
 
           <Link
@@ -250,11 +272,14 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         <div
           className={
             trip.status === "cancelled"
-              ? "mt-4 rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral"
-              : "mt-4 rounded-xl border border-border bg-surface-2 p-4 text-sm text-sea"
+              ? "mt-4 rounded-2xl border border-coral/30 bg-coral/10 p-4"
+              : "mt-4 rounded-2xl border border-border bg-surface-2 p-4"
           }
         >
-          {trip.status === "cancelled" ? "Salida cancelada (sigue visible públicamente)." : "Inscripciones cerradas."}
+          <p className="text-sm font-semibold text-sea">Aviso</p>
+          <p className="mt-1 text-sm text-muted">
+            {trip.status === "cancelled" ? "Salida cancelada (sigue visible públicamente)." : "Inscripciones cerradas."}
+          </p>
         </div>
       ) : null}
 
