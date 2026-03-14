@@ -42,19 +42,10 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
   }
 
   return (
-    <main className="relative min-h-screen">
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src="/home.MP4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-      />
-
-      <div className="absolute inset-0 bg-sea/60" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/55" />
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-brand-700 via-sea to-sea" />
+      <div className="absolute inset-0 bg-[url('/bg_home.JPG')] bg-cover bg-center opacity-30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/25 to-black/55" />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-10">
         <div className="w-full rounded-2xl border border-white/15 bg-white/85 p-6 shadow-lg backdrop-blur">
