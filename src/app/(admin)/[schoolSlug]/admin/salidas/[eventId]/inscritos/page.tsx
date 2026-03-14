@@ -28,7 +28,6 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
   const publicUrl = new URL(`/${schoolSlug}/salidas/${eventId}`, baseUrl).toString();
   const shareUrl = sp.share ? new URL(sp.share, baseUrl).toString() : null;
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(publicUrl)}`;
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
@@ -39,7 +38,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const { data: trip, error: tripError } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status, meeting_point, description")
+    .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -78,6 +77,44 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   const confirmedPeople = rows
     .filter((r) => r.status === "confirmed")
     .reduce((sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0), 0);
+
+  const oneLine = (trip.description ?? "")
+    .split("\n")
+    .map((s) => s.trim())
+    .find(Boolean);
+
+  const dateText = new Date(trip.starts_at).toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
+
+  const startTime = new Date(trip.starts_at).toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const endTime = trip.ends_at
+    ? new Date(trip.ends_at).toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  const timeText = endTime ? `${startTime}–${endTime}` : startTime;
+
+  const shareMessage = [
+    `Salida: ${trip.title}`,
+    `Fecha: ${dateText}`,
+    `Horario: ${timeText}`,
+    `Cupos: ${confirmedPeople}/${trip.capacity}`,
+    oneLine ? `\n${oneLine}` : "",
+    `\n${publicUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
 
   const confirmedRows = rows.filter((r) => r.status === "confirmed");
 
