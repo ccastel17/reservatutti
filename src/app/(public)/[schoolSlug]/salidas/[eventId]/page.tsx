@@ -90,6 +90,21 @@ export default async function PublicTripDetailPage({ params }: Props) {
           ? "Ahora mismo no quedan plazas."
           : null;
 
+  const whenFull = new Date(trip.starts_at).toLocaleString("es-ES", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const statusBadge =
+    trip.status === "cancelled"
+      ? { label: "Cancelada", className: "bg-coral/15 text-coral" }
+      : trip.status === "closed"
+        ? { label: "Cerrada", className: "bg-surface-2 text-muted" }
+        : null;
+
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto w-full max-w-md px-4 py-8">
@@ -98,17 +113,23 @@ export default async function PublicTripDetailPage({ params }: Props) {
         </header>
 
         <section className="mt-3 rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <h1 className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</h1>
+            {statusBadge ? (
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
+                {statusBadge.label}
+              </span>
+            ) : null}
+          </div>
 
-          <p className="mt-3 text-base font-semibold text-sea">
-            {new Date(trip.starts_at).toLocaleString("es-ES", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+              {whenFull}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">
+              {spotsLeft} plazas
+            </span>
+          </div>
 
           <div className="mt-4 space-y-2 text-sm">
             {trip.meeting_point ? (
@@ -136,12 +157,14 @@ export default async function PublicTripDetailPage({ params }: Props) {
           <div
             className={
               trip.status === "cancelled"
-                ? "mt-6 rounded-2xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral"
-                : "mt-6 rounded-2xl border border-border bg-surface-2 p-4 text-sm text-sea"
+                ? "mt-6 rounded-2xl border border-coral/30 bg-coral/10 p-4"
+                : trip.status === "closed"
+                  ? "mt-6 rounded-2xl border border-border bg-surface-2 p-4"
+                  : "mt-6 rounded-2xl border border-border bg-sea-50 p-4"
             }
           >
-            <p className="font-semibold text-sea">Aviso</p>
-            <p className="mt-1 text-muted">{warningText}</p>
+            <p className="text-sm font-semibold text-sea">Aviso</p>
+            <p className="mt-1 text-sm text-muted">{warningText}</p>
           </div>
         ) : null}
 
