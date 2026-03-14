@@ -42,45 +42,60 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-10">
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Entrar</h1>
-        <p className="mt-2 text-sm text-muted">Te enviaremos un enlace para acceder al panel.</p>
+    <main className="relative min-h-screen">
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src="/home.MP4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      />
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-sea">Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
-              placeholder="tu@escuela.com"
-              autoComplete="email"
-              inputMode="email"
-            />
-          </div>
+      <div className="absolute inset-0 bg-sea/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/55" />
 
-          {error ? (
-            <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
-              {error}
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-10">
+        <div className="w-full rounded-2xl border border-white/15 bg-white/85 p-6 shadow-lg backdrop-blur">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Entrar</h1>
+          <p className="mt-2 text-sm text-muted">Te enviaremos un enlace para acceder al panel.</p>
+
+          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-sea">Email</label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-border bg-white px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
+                placeholder="tu@escuela.com"
+                autoComplete="email"
+                inputMode="email"
+              />
             </div>
-          ) : null}
 
-          {message ? (
-            <div className="rounded-xl border border-brand/30 bg-brand-50 p-4 text-sm text-brand-700">
-              {message}
-            </div>
-          ) : null}
+            {error ? (
+              <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
+                {error}
+              </div>
+            ) : null}
 
-          <button
-            type="submit"
-            disabled={!canSubmit || sending}
-            className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {sending ? "Enviando…" : "Enviar enlace"}
-          </button>
-        </form>
+            {message ? (
+              <div className="rounded-xl border border-brand/30 bg-brand-50 p-4 text-sm text-brand-700">
+                {message}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={!canSubmit || sending}
+              className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {sending ? "Enviando…" : "Enviar enlace"}
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   );
