@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { AdminTopTabs } from "@/components/admin/AdminTopTabs";
 
@@ -19,8 +20,8 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-md items-center justify-between gap-3 px-4 py-4">
-          <Link href={`/${schoolSlug}/admin`} className="text-sm font-semibold text-sea">
-            Reservatutti
+          <Link href={`/${schoolSlug}/admin`} className="shrink-0">
+            <Image src="/logo.png" alt="Reservatutti" width={120} height={28} priority />
           </Link>
           <AdminTopTabs schoolSlug={schoolSlug} />
         </div>
