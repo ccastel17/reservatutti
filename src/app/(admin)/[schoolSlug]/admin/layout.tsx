@@ -21,7 +21,14 @@ export default async function AdminLayout({
       <header className="border-b border-border bg-surface/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-md items-center justify-between gap-3 px-4 py-4">
           <Link href={`/${schoolSlug}/admin`} className="shrink-0">
-            <Image src="/logo.png" alt="Reservatutti" width={120} height={28} priority />
+            <Image
+              src="/logo_2.png"
+              alt="Reservatutti"
+              width={170}
+              height={44}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
           <AdminTopTabs schoolSlug={schoolSlug} />
         </div>
