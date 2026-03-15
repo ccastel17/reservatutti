@@ -12,12 +12,14 @@ export type TripOccupancyStatRow = {
 export type TopContactRow = {
   id: string;
   full_name: string;
+  phone_e164: string;
   reservations_count: number;
 };
 
 export type BookingsByWeekdayRow = {
   weekday: number;
   occupied: number;
+  trips: number;
 };
 
 function getMonthAgoIso() {
@@ -128,7 +130,7 @@ export async function getTopContacts(
 ): Promise<TopContactRow[]> {
   const { data, error } = await supabase
     .from("contacts")
-    .select("id, full_name, reservations_count")
+    .select("id, full_name, phone_e164, reservations_count")
     .eq("school_id", schoolId)
     .order("reservations_count", { ascending: false })
     .limit(5);
@@ -157,9 +159,14 @@ export async function getBookingsByWeekday(
   const eventIds = eventRows.map((e) => e.id);
 
   const weekdayByEventId = new Map<string, number>();
+  const tripsByWeekday = new Map<number, number>();
+  for (let i = 0; i < 7; i += 1) tripsByWeekday.set(i, 0);
+
   for (const e of eventRows) {
     const weekday = new Date(e.starts_at).getDay();
     weekdayByEventId.set(e.id, weekday);
+    const current = tripsByWeekday.get(weekday) ?? 0;
+    tripsByWeekday.set(weekday, current + 1);
   }
 
   const occupiedByWeekday = new Map<number, number>();
@@ -185,9 +192,13 @@ export async function getBookingsByWeekday(
     }
   }
 
-  const result: BookingsByWeekdayRow[] = Array.from(occupiedByWeekday.entries()).map(
-    ([weekday, occupied]) => ({ weekday, occupied })
-  );
+  const result: BookingsByWeekdayRow[] = Array.from(occupiedByWeekday.entries())
+    .filter(([weekday]) => (tripsByWeekday.get(weekday) ?? 0) > 0)
+    .map(([weekday, occupied]) => ({
+      weekday,
+      occupied,
+      trips: tripsByWeekday.get(weekday) ?? 0,
+    }));
 
   result.sort((a, b) => b.occupied - a.occupied);
   return result;
