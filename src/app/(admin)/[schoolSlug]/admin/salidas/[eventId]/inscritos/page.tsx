@@ -376,7 +376,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                    <span className="hidden rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
                       Confirmada
                     </span>
 
