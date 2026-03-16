@@ -9,13 +9,21 @@ type Props = {
   searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string }>;
 };
 
-type ViewKey = "proximas" | "pasadas" | "recurrentes" | "canceladas" | "abiertas" | "completas";
+type ViewKey =
+  | "todas"
+  | "proximas"
+  | "pasadas"
+  | "recurrentes"
+  | "canceladas"
+  | "abiertas"
+  | "completas";
 
 export default async function AdminHomePage({ params, searchParams }: Props) {
   const { schoolSlug } = await params;
   const sp = await searchParams;
 
   const view =
+    sp.view === "todas" ||
     sp.view === "pasadas" ||
     sp.view === "recurrentes" ||
     sp.view === "canceladas" ||
@@ -50,6 +58,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
     const startsAt = new Date(t.starts_at);
     const isFuture = startsAt >= now;
 
+    if (view === "todas") return true;
     if (view === "proximas") return isFuture && t.status !== "cancelled";
     if (view === "pasadas") return startsAt < now;
     if (view === "recurrentes") return isFuture && t.series_id;
@@ -131,6 +140,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
   }
 
   const viewTitle: Record<ViewKey, string> = {
+    todas: "Todas las salidas",
     proximas: "Próximas salidas publicadas",
     pasadas: "Salidas pasadas",
     recurrentes: "Salidas recurrentes",
@@ -179,72 +189,51 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           <h2 className="text-base font-semibold text-sea">{viewTitle[view]}</h2>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-border bg-surface-2 p-1">
-          <div className="grid grid-cols-3 gap-1">
-            <Link
-              href={`/${schoolSlug}/admin?view=proximas`}
-              className={
-                view === "proximas"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Próximas
-            </Link>
-            <Link
-              href={`/${schoolSlug}/admin?view=abiertas`}
-              className={
-                view === "abiertas"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Abiertas
-            </Link>
-            <Link
-              href={`/${schoolSlug}/admin?view=completas`}
-              className={
-                view === "completas"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Completas
-            </Link>
+        <details className="group mt-3">
+          <summary className="list-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-sea shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <span>Ver: {viewTitle[view]}</span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-muted transition group-open:rotate-180"
+              >
+                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </summary>
+
+          <div className="mt-2 rounded-2xl border border-border bg-surface p-2 shadow-sm">
+            <div className="space-y-1">
+              {(
+                [
+                  { key: "todas", label: "Todas" },
+                  { key: "proximas", label: "Próximas" },
+                  { key: "abiertas", label: "Abiertas" },
+                  { key: "completas", label: "Completas" },
+                  { key: "recurrentes", label: "Recurrentes" },
+                  { key: "pasadas", label: "Pasadas" },
+                  { key: "canceladas", label: "Canceladas" },
+                ] as Array<{ key: ViewKey; label: string }>
+              ).map((opt) => (
+                <Link
+                  key={opt.key}
+                  href={`/${schoolSlug}/admin?view=${opt.key}`}
+                  className={
+                    view === opt.key
+                      ? "block rounded-xl bg-surface-2 px-3 py-2 text-sm font-semibold text-sea"
+                      : "block rounded-xl px-3 py-2 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-sea"
+                  }
+                >
+                  {opt.label}
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="mt-1 grid grid-cols-3 gap-1">
-            <Link
-              href={`/${schoolSlug}/admin?view=recurrentes`}
-              className={
-                view === "recurrentes"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Recurrentes
-            </Link>
-            <Link
-              href={`/${schoolSlug}/admin?view=pasadas`}
-              className={
-                view === "pasadas"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Pasadas
-            </Link>
-            <Link
-              href={`/${schoolSlug}/admin?view=canceladas`}
-              className={
-                view === "canceladas"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
-              }
-            >
-              Canceladas
-            </Link>
-          </div>
-        </div>
+        </details>
 
         <div className="mt-3 space-y-2">
           {visibleTripsSorted.length === 0 ? (
