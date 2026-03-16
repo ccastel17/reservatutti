@@ -1,17 +1,28 @@
 import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { getHiddenTripsBySchoolId, getUpcomingTripsBySchoolId } from "@/lib/data/adminTrips";
+import { getHiddenTripsBySchoolId, getTripsBySchoolId } from "@/lib/data/adminTrips";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
-  searchParams: Promise<{ ok?: string; err?: string; share?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string }>;
 };
+
+type ViewKey = "proximas" | "pasadas" | "recurrentes" | "canceladas" | "abiertas" | "completas";
 
 export default async function AdminHomePage({ params, searchParams }: Props) {
   const { schoolSlug } = await params;
   const sp = await searchParams;
+
+  const view =
+    sp.view === "pasadas" ||
+    sp.view === "recurrentes" ||
+    sp.view === "canceladas" ||
+    sp.view === "abiertas" ||
+    sp.view === "completas"
+      ? (sp.view as ViewKey)
+      : ("proximas" as const);
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -25,12 +36,30 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
 
   const supabase = await getSupabaseServer();
 
-  const upcomingVisible = await getUpcomingTripsBySchoolId(supabase, school.id, {
+  const allVisibleTrips = await getTripsBySchoolId(supabase, school.id, {
     visibleOnly: true,
+    daysBack: 120,
+    daysForward: 365,
+    limit: 250,
   });
   const hidden = await getHiddenTripsBySchoolId(supabase, school.id);
 
-  const upcomingIds = upcomingVisible.map((t) => t.id);
+  const now = new Date();
+
+  const visibleTripsForView = allVisibleTrips.filter((t) => {
+    const startsAt = new Date(t.starts_at);
+    const isFuture = startsAt >= now;
+
+    if (view === "proximas") return isFuture && t.status !== "cancelled";
+    if (view === "pasadas") return startsAt < now;
+    if (view === "recurrentes") return isFuture && t.series_id;
+    if (view === "canceladas") return t.status === "cancelled";
+    if (view === "abiertas") return isFuture && t.status === "scheduled";
+    if (view === "completas") return isFuture && t.status === "scheduled";
+    return isFuture;
+  });
+
+  const visibleTripIds = visibleTripsForView.map((t) => t.id);
   const reservationsByEventId = new Map<
     string,
     Array<{
@@ -42,13 +71,13 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
     }>
   >();
 
-  if (upcomingIds.length > 0) {
+  if (visibleTripIds.length > 0) {
     const { data: reservations, error } = await supabase
       .from("reservations")
       .select("id, event_id, participant_name, participant_phone_e164, has_plus_one, created_at")
       .eq("school_id", school.id)
       .eq("status", "confirmed")
-      .in("event_id", upcomingIds)
+      .in("event_id", visibleTripIds)
       .order("created_at", { ascending: true });
 
     if (error) throw new Error(error.message);
@@ -75,6 +104,40 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
       reservationsByEventId.set(r.event_id, list);
     }
   }
+
+  const occupiedByEventId = new Map<string, number>();
+  for (const t of visibleTripsForView) {
+    const reservations = reservationsByEventId.get(t.id) ?? [];
+    const occupied = reservations.reduce((sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0), 0);
+    occupiedByEventId.set(t.id, occupied);
+  }
+
+  const visibleTripsForViewFiltered =
+    view === "abiertas"
+      ? visibleTripsForView.filter((t) => (occupiedByEventId.get(t.id) ?? 0) < t.capacity)
+      : view === "completas"
+        ? visibleTripsForView.filter((t) => (occupiedByEventId.get(t.id) ?? 0) >= t.capacity)
+        : visibleTripsForView;
+
+  const visibleTripsSorted = [...visibleTripsForViewFiltered];
+  if (view === "pasadas") {
+    visibleTripsSorted.sort(
+      (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+    );
+  } else {
+    visibleTripsSorted.sort(
+      (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+    );
+  }
+
+  const viewTitle: Record<ViewKey, string> = {
+    proximas: "Próximas salidas publicadas",
+    pasadas: "Salidas pasadas",
+    recurrentes: "Salidas recurrentes",
+    canceladas: "Salidas canceladas",
+    abiertas: "Salidas abiertas",
+    completas: "Salidas completas",
+  };
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
@@ -112,17 +175,84 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
       </div>
 
       <section className="mt-8">
-        <h2 className="text-base font-semibold text-sea">Próximas salidas publicadas</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-sea">{viewTitle[view]}</h2>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-border bg-surface-2 p-1">
+          <div className="grid grid-cols-3 gap-1">
+            <Link
+              href={`/${schoolSlug}/admin?view=proximas`}
+              className={
+                view === "proximas"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Próximas
+            </Link>
+            <Link
+              href={`/${schoolSlug}/admin?view=abiertas`}
+              className={
+                view === "abiertas"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Abiertas
+            </Link>
+            <Link
+              href={`/${schoolSlug}/admin?view=completas`}
+              className={
+                view === "completas"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Completas
+            </Link>
+          </div>
+          <div className="mt-1 grid grid-cols-3 gap-1">
+            <Link
+              href={`/${schoolSlug}/admin?view=recurrentes`}
+              className={
+                view === "recurrentes"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Recurrentes
+            </Link>
+            <Link
+              href={`/${schoolSlug}/admin?view=pasadas`}
+              className={
+                view === "pasadas"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Pasadas
+            </Link>
+            <Link
+              href={`/${schoolSlug}/admin?view=canceladas`}
+              className={
+                view === "canceladas"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-xs font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-xs font-semibold text-muted hover:text-sea"
+              }
+            >
+              Canceladas
+            </Link>
+          </div>
+        </div>
+
         <div className="mt-3 space-y-2">
-          {upcomingVisible.length === 0 ? (
-            <p className="text-sm text-muted">Aún no hay salidas publicadas.</p>
+          {visibleTripsSorted.length === 0 ? (
+            <p className="text-sm text-muted">No hay salidas en esta vista.</p>
           ) : (
-            upcomingVisible.map((t) => {
+            visibleTripsSorted.map((t) => {
               const reservations = reservationsByEventId.get(t.id) ?? [];
-              const occupied = reservations.reduce(
-                (sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0),
-                0
-              );
+              const occupied = occupiedByEventId.get(t.id) ?? 0;
 
               return (
                 <Link
@@ -154,6 +284,12 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                           }
                         >
                           {t.status === "cancelled" ? "Cancelada" : "Cerrada"}
+                        </span>
+                      ) : null}
+
+                      {t.status === "scheduled" && occupied >= t.capacity ? (
+                        <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">
+                          Completa
                         </span>
                       ) : null}
 

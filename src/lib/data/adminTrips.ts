@@ -8,7 +8,47 @@ export type AdminTripRow = {
   capacity: number;
   is_visible: boolean;
   status: "scheduled" | "cancelled" | "closed";
+  series_id: string | null;
 };
+
+function addDays(d: Date, days: number) {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+export async function getTripsBySchoolId(
+  supabase: SupabaseClient<Database>,
+  schoolId: string,
+  opts?: {
+    visibleOnly?: boolean;
+    daysBack?: number;
+    daysForward?: number;
+    limit?: number;
+  }
+): Promise<AdminTripRow[]> {
+  const now = new Date();
+  const from = addDays(now, -(opts?.daysBack ?? 0)).toISOString();
+  const to = addDays(now, opts?.daysForward ?? 0).toISOString();
+
+  let query = supabase
+    .from("events")
+    .select("id, title, starts_at, capacity, is_visible, status, series_id")
+    .eq("school_id", schoolId)
+    .gte("starts_at", from)
+    .lte("starts_at", to)
+    .order("starts_at", { ascending: true })
+    .limit(opts?.limit ?? 200);
+
+  if (opts?.visibleOnly) {
+    query = query.eq("is_visible", true);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return (data ?? []) as AdminTripRow[];
+}
 
 export async function getUpcomingTripsBySchoolId(
   supabase: SupabaseClient<Database>,
@@ -19,7 +59,7 @@ export async function getUpcomingTripsBySchoolId(
 
   let query = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status")
+    .select("id, title, starts_at, capacity, is_visible, status, series_id")
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .order("starts_at", { ascending: true })
@@ -43,7 +83,7 @@ export async function getHiddenTripsBySchoolId(
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status")
+    .select("id, title, starts_at, capacity, is_visible, status, series_id")
     .eq("school_id", schoolId)
     .eq("is_visible", false)
     .gte("starts_at", from)
