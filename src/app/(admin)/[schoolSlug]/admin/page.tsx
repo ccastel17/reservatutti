@@ -3,6 +3,7 @@ import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess"
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getHiddenTripsBySchoolId, getTripsBySchoolId } from "@/lib/data/adminTrips";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
+import { AdminTripsViewSelect } from "@/components/admin/AdminTripsViewSelect";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
@@ -189,51 +190,20 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           <h2 className="text-base font-semibold text-sea">{viewTitle[view]}</h2>
         </div>
 
-        <details className="group mt-3">
-          <summary className="list-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-sea shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <span>Ver: {viewTitle[view]}</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-muted transition group-open:rotate-180"
-              >
-                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          </summary>
-
-          <div className="mt-2 rounded-2xl border border-border bg-surface p-2 shadow-sm">
-            <div className="space-y-1">
-              {(
-                [
-                  { key: "todas", label: "Todas" },
-                  { key: "proximas", label: "Próximas" },
-                  { key: "abiertas", label: "Abiertas" },
-                  { key: "completas", label: "Completas" },
-                  { key: "recurrentes", label: "Recurrentes" },
-                  { key: "pasadas", label: "Pasadas" },
-                  { key: "canceladas", label: "Canceladas" },
-                ] as Array<{ key: ViewKey; label: string }>
-              ).map((opt) => (
-                <Link
-                  key={opt.key}
-                  href={`/${schoolSlug}/admin?view=${opt.key}`}
-                  className={
-                    view === opt.key
-                      ? "block rounded-xl bg-surface-2 px-3 py-2 text-sm font-semibold text-sea"
-                      : "block rounded-xl px-3 py-2 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-sea"
-                  }
-                >
-                  {opt.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </details>
+        <div className="mt-3">
+          <AdminTripsViewSelect
+            value={view}
+            options={[
+              { key: "todas", label: "Todas" },
+              { key: "proximas", label: "Próximas" },
+              { key: "abiertas", label: "Abiertas" },
+              { key: "completas", label: "Completas" },
+              { key: "recurrentes", label: "Recurrentes" },
+              { key: "pasadas", label: "Pasadas" },
+              { key: "canceladas", label: "Canceladas" },
+            ]}
+          />
+        </div>
 
         <div className="mt-3 space-y-2">
           {visibleTripsSorted.length === 0 ? (
