@@ -183,13 +183,13 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           href={`/${schoolSlug}/admin/salidas/nueva`}
           className="rounded-xl bg-brand px-4 py-3 text-center text-sm font-semibold text-white shadow-sm"
         >
-          Nueva salida
+          Nuevo evento
         </Link>
         <Link
           href={`/${schoolSlug}/admin/series/nueva`}
           className="rounded-xl border border-brand bg-surface px-4 py-3 text-center text-sm font-semibold text-brand shadow-sm"
         >
-          Salida semanal
+          Evento semanal
         </Link>
       </div>
 

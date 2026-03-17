@@ -21,7 +21,7 @@ export default async function EditTripTextsPage({ params, searchParams }: Props)
   const supabase = await getSupabaseServer();
   const { data: trip, error } = await supabase
     .from("events")
-    .select("id, title, meeting_point, description, starts_at")
+    .select("id, title, meeting_point, description, starts_at, category")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -29,11 +29,13 @@ export default async function EditTripTextsPage({ params, searchParams }: Props)
   if (error) throw new Error(error.message);
   if (!trip) notFound();
 
+  const catLabel = trip.category === "theory" ? "Teórica" : trip.category === "practice" ? "Práctica" : "Salida";
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Salida</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">{catLabel}</p>
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Editar textos</h1>
           <p className="mt-1 text-sm text-muted">
             {new Date(trip.starts_at).toLocaleString("es-ES", {

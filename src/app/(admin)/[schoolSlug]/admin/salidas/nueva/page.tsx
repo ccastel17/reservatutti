@@ -10,8 +10,8 @@ export default async function NewTripPage({ params }: Props) {
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
-      <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Nueva salida</h1>
-      <p className="mt-1 text-sm text-muted">Crea una salida puntual en menos de 1 minuto.</p>
+      <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Nuevo evento</h1>
+      <p className="mt-1 text-sm text-muted">Crea un evento puntual en menos de 1 minuto.</p>
 
       <form action={createTrip} className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <input type="hidden" name="schoolSlug" value={schoolSlug} />
@@ -107,7 +107,7 @@ export default async function NewTripPage({ params }: Props) {
         </div>
 
         <button className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm">
-          Crear salida
+          Crear evento
         </button>
       </form>
     </main>

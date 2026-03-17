@@ -38,13 +38,15 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const { data: trip, error: tripError } = await supabase
     .from("events")
-    .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description")
+    .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description, category")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
 
   if (tripError) throw new Error(tripError.message);
   if (!trip) notFound();
+
+  const catLabel = trip.category === "theory" ? "Teórica" : trip.category === "practice" ? "Práctica" : "Salida";
 
   const { data: reservations, error } = await supabase
     .from("reservations")
@@ -106,7 +108,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   const shareMessage = [
     publicUrl,
     "",
-    `Salida: ${trip.title}`,
+    `${catLabel}: ${trip.title}`,
     `Fecha: ${dateText}`,
     `Horario: ${timeText}`,
     `Cupos: ${confirmedPeople}/${trip.capacity}`,
@@ -145,7 +147,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
       <section className="mt-3 rounded-2xl border border-border bg-surface p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Salida</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">{catLabel}</p>
             <div className="mt-1 flex items-start justify-between gap-3">
               <p className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</p>
               {statusBadge ? (
