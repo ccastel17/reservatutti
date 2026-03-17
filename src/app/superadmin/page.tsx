@@ -1,6 +1,7 @@
 import { requireSuperAdminAccess } from "@/lib/tenant/requireSuperAdminAccess";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
-import { createSchool } from "./actions";
+import { getAllSchools } from "@/lib/data/schools";
+import { createSchool, generateSchoolInvite } from "./actions";
 
 type Props = {
   searchParams: Promise<{ ok?: string; err?: string; invite?: string }>;
@@ -9,6 +10,8 @@ type Props = {
 export default async function SuperAdminPage({ searchParams }: Props) {
   const sp = await searchParams;
   await requireSuperAdminAccess({ nextPath: "/superadmin" });
+
+  const schools = await getAllSchools();
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-8">
@@ -31,6 +34,51 @@ export default async function SuperAdminPage({ searchParams }: Props) {
           <p className="mt-2 text-xs text-muted">Copiado al portapapeles si tu navegador lo permite.</p>
         </div>
       ) : null}
+
+      {schools.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <p className="text-sm font-semibold text-sea">Invitar a otro admin</p>
+          <p className="mt-1 text-sm text-muted">Primero crea una escuela.</p>
+        </div>
+      ) : (
+        <form
+          action={generateSchoolInvite}
+          className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-4 shadow-sm"
+        >
+          <p className="text-sm font-semibold text-sea">Invitar a otro admin</p>
+
+          <div>
+            <label className="block text-sm font-medium text-sea">Escuela</label>
+            <select
+              name="schoolId"
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea outline-none focus:border-brand"
+              required
+              defaultValue={schools[0].id}
+            >
+              {schools.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.slug})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-sea">Email admin</label>
+            <input
+              name="adminEmail"
+              type="email"
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
+              placeholder="admin2@escuela.com"
+              required
+            />
+          </div>
+
+          <button className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm">
+            Generar invitación
+          </button>
+        </form>
+      )}
 
       <form action={createSchool} className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <div>
