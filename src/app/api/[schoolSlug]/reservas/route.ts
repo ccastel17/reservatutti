@@ -187,5 +187,23 @@ export async function POST(
       .eq("id", contactId);
   }
 
+  if (willBePending) {
+    try {
+      await supabase.from("school_activity").insert({
+        school_id: school.id,
+        type: "waitlist_joined",
+        event_id: trip.id,
+        reservation_id: booking.id,
+        participant_name: body.data.participantName.trim(),
+        participant_phone_e164: phoneE164,
+        payload: {
+          has_plus_one: Boolean(body.data.hasPlusOne),
+        },
+      });
+    } catch {
+      // ignore
+    }
+  }
+
   return NextResponse.json({ bookingId: booking.id, status: booking.status }, { status: 201 });
 }

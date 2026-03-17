@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { AdminTopTabs } from "@/components/admin/AdminTopTabs";
+import { getSupabaseServer } from "@/lib/supabase/server";
 
 export default async function AdminLayout({
   children,
@@ -10,10 +11,23 @@ export default async function AdminLayout({
   params: Promise<{ schoolSlug: string }>;
 }) {
   const { schoolSlug } = await params;
-  await requireAdminSchoolAccess({
+  const { school } = await requireAdminSchoolAccess({
     schoolSlug,
     nextPath: `/${schoolSlug}/admin`,
   });
+
+  let activityUnreadCount = 0;
+  try {
+    const supabase = await getSupabaseServer();
+    const { count } = await supabase
+      .from("school_activity")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school.id)
+      .is("read_at", null);
+    activityUnreadCount = count ?? 0;
+  } catch {
+    activityUnreadCount = 0;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,7 +39,7 @@ export default async function AdminLayout({
               <span className="text-brand-700">Tutti</span>
             </span>
           </Link>
-          <AdminTopTabs schoolSlug={schoolSlug} />
+          <AdminTopTabs schoolSlug={schoolSlug} activityUnreadCount={activityUnreadCount} />
         </div>
       </header>
 

@@ -242,7 +242,35 @@ export async function cancelReservation(formData: FormData) {
       );
     }
 
-    const promotedId = Array.isArray(rpcData) && rpcData.length > 0 ? rpcData[0]?.promoted_reservation_id : null;
+    const promotedId =
+      Array.isArray(rpcData) && rpcData.length > 0
+        ? ((rpcData[0] as { promoted_reservation_id?: string | null })?.promoted_reservation_id ?? null)
+        : null;
+
+    if (promotedId) {
+      try {
+        const { data: promoted } = await supabase
+          .from("reservations")
+          .select("id, participant_name, participant_phone_e164, event_id")
+          .eq("id", promotedId)
+          .eq("school_id", school.id)
+          .maybeSingle();
+
+        await supabase.from("school_activity").insert({
+          school_id: school.id,
+          type: "waitlist_promoted",
+          event_id: promoted?.event_id ?? eventId,
+          reservation_id: promoted?.id ?? promotedId,
+          participant_name: promoted?.participant_name ?? null,
+          participant_phone_e164: promoted?.participant_phone_e164 ?? null,
+          payload: {
+            cancelled_reservation_id: reservationId,
+          },
+        });
+      } catch {
+        // ignore
+      }
+    }
 
     redirect(
       `/${schoolSlug}/admin/salidas/${eventId}/inscritos?ok=${encodeURIComponent(

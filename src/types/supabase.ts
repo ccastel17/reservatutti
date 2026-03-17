@@ -37,6 +37,77 @@ export type Database = {
         Relationships: [];
       };
 
+      school_activity: {
+        Row: {
+          id: string;
+          school_id: string;
+          type: string;
+          created_at: string;
+          read_at: string | null;
+          event_id: string | null;
+          reservation_id: string | null;
+          participant_name: string | null;
+          participant_phone_e164: string | null;
+          payload: Json | null;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          type: string;
+          created_at?: string;
+          read_at?: string | null;
+          event_id?: string | null;
+          reservation_id?: string | null;
+          participant_name?: string | null;
+          participant_phone_e164?: string | null;
+          payload?: Json | null;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          type?: string;
+          created_at?: string;
+          read_at?: string | null;
+          event_id?: string | null;
+          reservation_id?: string | null;
+          participant_name?: string | null;
+          participant_phone_e164?: string | null;
+          payload?: Json | null;
+        };
+        Relationships: [];
+      };
+
+      school_invites: {
+        Row: {
+          id: string;
+          school_id: string;
+          email: string;
+          token: string;
+          created_at: string;
+          expires_at: string;
+          used_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          school_id: string;
+          email: string;
+          token: string;
+          created_at?: string;
+          expires_at: string;
+          used_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          school_id?: string;
+          email?: string;
+          token?: string;
+          created_at?: string;
+          expires_at?: string;
+          used_at?: string | null;
+        };
+        Relationships: [];
+      };
+
       events: {
         Row: {
           id: string;
@@ -50,6 +121,7 @@ export type Database = {
           capacity: number;
           is_visible: boolean;
           status: "scheduled" | "cancelled" | "closed";
+          category: "trip" | "theory" | "practice";
           cancelled_at: string | null;
           closed_at: string | null;
           created_at: string;
@@ -67,6 +139,7 @@ export type Database = {
           capacity: number;
           is_visible?: boolean;
           status?: "scheduled" | "cancelled" | "closed";
+          category?: "trip" | "theory" | "practice";
           cancelled_at?: string | null;
           closed_at?: string | null;
           created_at?: string;
@@ -84,6 +157,7 @@ export type Database = {
           capacity?: number;
           is_visible?: boolean;
           status?: "scheduled" | "cancelled" | "closed";
+          category?: "trip" | "theory" | "practice";
           cancelled_at?: string | null;
           closed_at?: string | null;
           created_at?: string;
@@ -251,7 +325,8 @@ export type Database = {
     Enums: {
       member_role: "owner" | "organizer";
       event_status: "scheduled" | "cancelled" | "closed";
-      reservation_status: "confirmed" | "cancelled";
+      reservation_status: "confirmed" | "pending" | "cancelled";
+      event_category: "trip" | "theory" | "practice";
     };
     CompositeTypes: Record<string, never>;
   };
