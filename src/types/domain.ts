@@ -46,7 +46,7 @@ export type Booking = {
   participant_name: string;
   participant_phone_e164: string;
   has_plus_one: boolean;
-  status: "confirmed" | "cancelled";
+  status: "confirmed" | "pending" | "cancelled";
   created_at: string;
   updated_at: string;
   cancelled_at: string | null;

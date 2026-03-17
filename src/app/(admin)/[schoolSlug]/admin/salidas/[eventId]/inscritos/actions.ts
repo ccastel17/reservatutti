@@ -195,6 +195,64 @@ export async function cancelReservation(formData: FormData) {
 
   const supabase = await getSupabaseServer();
 
+  const { data: existing, error: existingError } = await supabase
+    .from("reservations")
+    .select("id, status")
+    .eq("id", reservationId)
+    .eq("school_id", school.id)
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (existingError || !existing) {
+    redirect(
+      `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
+        "No se pudo encontrar la reserva."
+      )}`
+    );
+  }
+
+  const isConfirmed = existing.status === "confirmed";
+
+  if (isConfirmed) {
+    const rpcClient = supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: {
+          p_school_id: string;
+          p_event_id: string;
+          p_reservation_id: string;
+        }
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    };
+
+    const { data: rpcData, error: rpcError } = await rpcClient.rpc(
+      "cancel_reservation_and_promote_waitlist",
+      {
+        p_school_id: school.id,
+        p_event_id: eventId,
+        p_reservation_id: reservationId,
+      }
+    );
+
+    if (rpcError) {
+      redirect(
+        `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
+          "No se pudo eliminar al inscrito."
+        )}`
+      );
+    }
+
+    const promotedId = Array.isArray(rpcData) && rpcData.length > 0 ? rpcData[0]?.promoted_reservation_id : null;
+
+    redirect(
+      `/${schoolSlug}/admin/salidas/${eventId}/inscritos?ok=${encodeURIComponent(
+        promotedId
+          ? "Inscripción eliminada. Se ha promovido a una persona de la lista de espera."
+          : "Inscripción eliminada."
+      )}`
+    );
+  }
+
   const { error } = await supabase
     .from("reservations")
     .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
@@ -328,13 +386,7 @@ export async function addManualReservation(formData: FormData) {
   );
 
   const needed = hasPlusOne ? 2 : 1;
-  if (occupied + needed > trip.capacity) {
-    redirect(
-      `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
-        "No quedan plazas suficientes para añadir esta inscripción."
-      )}`
-    );
-  }
+  const willBePending = occupied + needed > trip.capacity;
 
   const { data: existingContact, error: contactError } = await supabase
     .from("contacts")
@@ -386,7 +438,10 @@ export async function addManualReservation(formData: FormData) {
 
     contactId = inserted.id;
   } else {
-    await supabase.from("contacts").update({ full_name: participantName.trim() }).eq("id", contactId);
+    await supabase
+      .from("contacts")
+      .update({ full_name: participantName.trim() })
+      .eq("id", contactId);
   }
 
   const { error: bookingError } = await supabase.from("reservations").insert({
@@ -396,7 +451,7 @@ export async function addManualReservation(formData: FormData) {
     participant_name: participantName.trim(),
     participant_phone_e164: phoneE164,
     has_plus_one: hasPlusOne,
-    status: "confirmed",
+    status: willBePending ? "pending" : "confirmed",
   });
 
   if (bookingError) {
@@ -420,19 +475,21 @@ export async function addManualReservation(formData: FormData) {
     );
   }
 
-  const nowIso = new Date().toISOString();
-  await supabase
-    .from("contacts")
-    .update({
-      reservations_count: (existingContact?.reservations_count ?? 0) + 1,
-      first_reserved_at: existingContact ? undefined : nowIso,
-      last_reserved_at: nowIso,
-    })
-    .eq("id", contactId);
+  if (!willBePending) {
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from("contacts")
+      .update({
+        reservations_count: (existingContact?.reservations_count ?? 0) + 1,
+        first_reserved_at: existingContact ? undefined : nowIso,
+        last_reserved_at: nowIso,
+      })
+      .eq("id", contactId);
+  }
 
   redirect(
     `/${schoolSlug}/admin/salidas/${eventId}/inscritos?ok=${encodeURIComponent(
-      "Inscripción añadida."
+      willBePending ? "Añadido en lista de espera." : "Inscripción añadida."
     )}`
   );
 }

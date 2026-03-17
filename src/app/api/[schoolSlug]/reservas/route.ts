@@ -113,12 +113,7 @@ export async function POST(
   );
 
   const needed = body.data.hasPlusOne ? 2 : 1;
-  if (occupied + needed > trip.capacity) {
-    return NextResponse.json(
-      { error: "Ya no quedan plazas para esta salida.", code: "SOLD_OUT" },
-      { status: 409 }
-    );
-  }
+  const willBePending = occupied + needed > trip.capacity;
 
   // Upsert contact (create if needed)
   let contactId = existingContact?.id ?? null;
@@ -158,9 +153,9 @@ export async function POST(
       participant_name: body.data.participantName.trim(),
       participant_phone_e164: phoneE164,
       has_plus_one: Boolean(body.data.hasPlusOne),
-      status: "confirmed",
+      status: willBePending ? "pending" : "confirmed",
     })
-    .select("id")
+    .select("id, status")
     .single();
 
   if (bookingError) {
@@ -180,16 +175,17 @@ export async function POST(
     return NextResponse.json({ error: "No se pudo completar la reserva." }, { status: 500 });
   }
 
-  // Update contact counters (best effort for MVP)
-  const nowIso = new Date().toISOString();
-  await supabase
-    .from("contacts")
-    .update({
-      reservations_count: (existingContact?.reservations_count ?? 0) + 1,
-      first_reserved_at: existingContact ? undefined : nowIso,
-      last_reserved_at: nowIso,
-    })
-    .eq("id", contactId);
+  if (!willBePending) {
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from("contacts")
+      .update({
+        reservations_count: (existingContact?.reservations_count ?? 0) + 1,
+        first_reserved_at: existingContact ? undefined : nowIso,
+        last_reserved_at: nowIso,
+      })
+      .eq("id", contactId);
+  }
 
-  return NextResponse.json({ bookingId: booking.id }, { status: 201 });
+  return NextResponse.json({ bookingId: booking.id, status: booking.status }, { status: 201 });
 }

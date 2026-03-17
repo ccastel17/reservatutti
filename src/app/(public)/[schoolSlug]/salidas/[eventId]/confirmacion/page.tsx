@@ -2,20 +2,26 @@ import Link from "next/link";
 
 type Props = {
   params: Promise<{ schoolSlug: string; eventId: string }>;
-  searchParams: Promise<{ booking?: string }>;
+  searchParams: Promise<{ booking?: string; status?: string }>;
 };
 
 export default async function BookingConfirmationPage({ params, searchParams }: Props) {
   const { schoolSlug, eventId } = await params;
-  const { booking } = await searchParams;
+  const { booking, status } = await searchParams;
+
+  const isPending = status === "pending";
 
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto w-full max-w-md px-4 py-10">
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h1 className="text-xl font-semibold tracking-tight text-sea">¡Listo! Estás apuntado</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-sea">
+            {isPending ? "Estás en lista de espera" : "¡Listo! Estás apuntado"}
+          </h1>
           <p className="mt-2 text-sm text-muted">
-            Si hay algún cambio, la escuela contactará contigo por teléfono.
+            {isPending
+              ? "Ahora mismo no quedan plazas. Si se libera una plaza, la escuela te confirmará la inscripción."
+              : "Si hay algún cambio, la escuela contactará contigo por teléfono."}
           </p>
 
           {booking ? <p className="mt-4 text-xs text-muted">Referencia: {booking}</p> : null}

@@ -77,14 +77,14 @@ export default async function PublicTripDetailPage({ params }: Props) {
   if (!detail) notFound();
 
   const { trip, spotsLeft } = detail;
-  const canBook = trip.status === "scheduled" && spotsLeft > 0;
+  const canBook = trip.status === "scheduled";
   const warningText =
     trip.status === "cancelled"
       ? "Esta salida está cancelada."
       : trip.status === "closed"
         ? "Las inscripciones están cerradas."
-        : !canBook
-          ? "Ahora mismo no quedan plazas."
+        : spotsLeft <= 0
+          ? "Ahora mismo no quedan plazas. Puedes apuntarte en lista de espera."
           : null;
 
   const whenFull = new Date(trip.starts_at).toLocaleString("es-ES", {

@@ -60,7 +60,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   const rows =
     (reservations ?? []) as Array<{
       id: string;
-      status: "confirmed" | "cancelled";
+      status: "confirmed" | "pending" | "cancelled";
       participant_name: string;
       participant_phone_e164: string;
       has_plus_one: boolean;
@@ -118,6 +118,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
 
   const confirmedRows = rows.filter((r) => r.status === "confirmed");
+  const pendingRows = rows.filter((r) => r.status === "pending");
 
   const whenFull = new Date(trip.starts_at).toLocaleString("es-ES", {
     weekday: "long",
@@ -348,67 +349,178 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         {rows.length === 0 ? (
           <p className="text-sm text-muted">Aún no hay nadie apuntado.</p>
         ) : (
-          confirmedRows.map((r, idx) => {
-            const contact = r.contacts;
-            const frequent =
-              Boolean(contact?.is_frequent_override) || (contact?.reservations_count ?? 0) >= 2;
-
-            return (
-              <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-sea">
-                      {idx + 1}. {r.participant_name}
-                      {r.has_plus_one ? " (+1)" : ""}
-                    </p>
-                    <p className="mt-1 text-sm text-muted">{r.participant_phone_e164}</p>
-                    <p className="mt-2 text-xs text-muted">
-                      {frequent ? "Contacto frecuente" : "Contacto nuevo"}
-                      {contact ? ` · ${contact.reservations_count} reservas` : ""}
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      {new Date(r.created_at).toLocaleString("es-ES", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="hidden rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-                      Confirmada
-                    </span>
-
-                    {contact ? (
-                      <form action={toggleContactFrequent}>
-                        <input type="hidden" name="schoolSlug" value={schoolSlug} />
-                        <input type="hidden" name="eventId" value={eventId} />
-                        <input type="hidden" name="contactId" value={contact.id} />
-                        <input
-                          type="hidden"
-                          name="isFrequentOverride"
-                          value={contact.is_frequent_override ? "false" : "true"}
-                        />
-                        <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
-                          {contact.is_frequent_override ? "Quitar frecuente" : "Marcar frecuente"}
-                        </button>
-                      </form>
-                    ) : null}
-
-                    <form action={cancelReservation}>
-                      <input type="hidden" name="schoolSlug" value={schoolSlug} />
-                      <input type="hidden" name="eventId" value={eventId} />
-                      <input type="hidden" name="reservationId" value={r.id} />
-                      <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
-                        Eliminar
-                      </button>
-                    </form>
-                  </div>
-                </div>
+          <>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-sea">Confirmados</p>
+              <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">
+                {confirmedRows.length}
+              </span>
+            </div>
+            {confirmedRows.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-sm text-muted">No hay confirmados.</p>
               </div>
-            );
-          })
+            ) : (
+              confirmedRows.map((r, idx) => {
+                const contact = r.contacts;
+                const frequent =
+                  Boolean(contact?.is_frequent_override) || (contact?.reservations_count ?? 0) >= 2;
+                const waTo = r.participant_phone_e164.replace(/\D/g, "");
+                const waLink = waTo ? `https://wa.me/${waTo}` : null;
+
+                return (
+                  <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-sea">
+                          {idx + 1}. {r.participant_name}
+                          {r.has_plus_one ? " (+1)" : ""}
+                        </p>
+                        <p className="mt-1 text-sm text-muted">{r.participant_phone_e164}</p>
+                        <p className="mt-2 text-xs text-muted">
+                          {frequent ? "Contacto frecuente" : "Contacto nuevo"}
+                          {contact ? ` · ${contact.reservations_count} reservas` : ""}
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          {new Date(r.created_at).toLocaleString("es-ES", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {waLink ? (
+                          <Link
+                            href={waLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                          >
+                            WhatsApp
+                          </Link>
+                        ) : null}
+
+                        {contact ? (
+                          <form action={toggleContactFrequent}>
+                            <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                            <input type="hidden" name="eventId" value={eventId} />
+                            <input type="hidden" name="contactId" value={contact.id} />
+                            <input
+                              type="hidden"
+                              name="isFrequentOverride"
+                              value={contact.is_frequent_override ? "false" : "true"}
+                            />
+                            <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
+                              {contact.is_frequent_override ? "Quitar frecuente" : "Marcar frecuente"}
+                            </button>
+                          </form>
+                        ) : null}
+
+                        <form action={cancelReservation}>
+                          <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                          <input type="hidden" name="eventId" value={eventId} />
+                          <input type="hidden" name="reservationId" value={r.id} />
+                          <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
+                            Eliminar
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            <div className="mt-6 flex items-center justify-between">
+              <p className="text-sm font-semibold text-sea">Pendientes</p>
+              <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                {pendingRows.length}
+              </span>
+            </div>
+            {pendingRows.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-sm text-muted">No hay pendientes.</p>
+              </div>
+            ) : (
+              pendingRows.map((r, idx) => {
+                const contact = r.contacts;
+                const frequent =
+                  Boolean(contact?.is_frequent_override) || (contact?.reservations_count ?? 0) >= 2;
+                const waTo = r.participant_phone_e164.replace(/\D/g, "");
+                const waLink = waTo ? `https://wa.me/${waTo}` : null;
+
+                return (
+                  <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-sea">
+                            {idx + 1}. {r.participant_name}
+                            {r.has_plus_one ? " (+1)" : ""}
+                          </p>
+                          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+                            Pendiente
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted">{r.participant_phone_e164}</p>
+                        <p className="mt-2 text-xs text-muted">
+                          {frequent ? "Contacto frecuente" : "Contacto nuevo"}
+                          {contact ? ` · ${contact.reservations_count} reservas` : ""}
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          {new Date(r.created_at).toLocaleString("es-ES", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {waLink ? (
+                          <Link
+                            href={waLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                          >
+                            WhatsApp
+                          </Link>
+                        ) : null}
+
+                        {contact ? (
+                          <form action={toggleContactFrequent}>
+                            <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                            <input type="hidden" name="eventId" value={eventId} />
+                            <input type="hidden" name="contactId" value={contact.id} />
+                            <input
+                              type="hidden"
+                              name="isFrequentOverride"
+                              value={contact.is_frequent_override ? "false" : "true"}
+                            />
+                            <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
+                              {contact.is_frequent_override ? "Quitar frecuente" : "Marcar frecuente"}
+                            </button>
+                          </form>
+                        ) : null}
+
+                        <form action={cancelReservation}>
+                          <input type="hidden" name="schoolSlug" value={schoolSlug} />
+                          <input type="hidden" name="eventId" value={eventId} />
+                          <input type="hidden" name="reservationId" value={r.id} />
+                          <button className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm">
+                            Eliminar
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </>
         )}
       </div>
     </main>

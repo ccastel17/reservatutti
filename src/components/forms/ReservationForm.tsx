@@ -13,6 +13,11 @@ type ApiError = {
   code?: string;
 };
 
+type ApiOk = {
+  bookingId: string;
+  status: "confirmed" | "pending" | "cancelled";
+};
+
 export function ReservationForm(props: Props) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -79,10 +84,10 @@ export function ReservationForm(props: Props) {
         return;
       }
 
-      const data = (await res.json()) as { bookingId: string };
+      const data = (await res.json()) as ApiOk;
       window.location.href = `/${props.schoolSlug}/salidas/${props.tripId}/confirmacion?booking=${encodeURIComponent(
         data.bookingId
-      )}`;
+      )}&status=${encodeURIComponent(data.status)}`;
     } catch {
       setError("No se pudo completar la reserva. Inténtalo de nuevo.");
     } finally {
@@ -139,10 +144,14 @@ export function ReservationForm(props: Props) {
 
       <button
         type="submit"
-        disabled={!canSubmit || props.spotsLeft <= 0}
+        disabled={!canSubmit}
         className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {props.spotsLeft <= 0 ? "Plazas agotadas" : submitting ? "Apuntándote…" : "Apuntarme"}
+        {submitting
+          ? "Apuntándote…"
+          : props.spotsLeft <= 0
+            ? "Apuntarme en lista de espera"
+            : "Apuntarme"}
       </button>
 
       <p className="text-xs text-muted">
