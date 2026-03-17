@@ -1,5 +1,5 @@
 import { requireSuperAdminAccess } from "@/lib/tenant/requireSuperAdminAccess";
-import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
+import { CopyToClipboardButton } from "@/components/admin/CopyToClipboardOnLoad";
 import { getAllSchools } from "@/lib/data/schools";
 import { createSchool, generateSchoolInvite } from "./actions";
 
@@ -29,9 +29,14 @@ export default async function SuperAdminPage({ searchParams }: Props) {
       {sp.invite ? (
         <div className="mt-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
           <p className="text-sm font-semibold text-sea">Enlace de acceso (cópialo y envíalo)</p>
-          <p className="mt-1 break-all text-xs text-muted">{sp.invite}</p>
-          <CopyToClipboardOnLoad text={sp.invite} />
-          <p className="mt-2 text-xs text-muted">Copiado al portapapeles si tu navegador lo permite. Envíalo por WhatsApp o email.</p>
+          <textarea
+            readOnly
+            value={sp.invite}
+            className="mt-2 w-full resize-none rounded-xl border border-border bg-surface px-3 py-2 text-xs text-sea outline-none"
+            rows={3}
+          />
+          <CopyToClipboardButton text={sp.invite} />
+          <p className="mt-2 text-xs text-muted">Puedes seleccionar el enlace y copiarlo manualmente, o usar el botón.</p>
         </div>
       ) : null}
 
