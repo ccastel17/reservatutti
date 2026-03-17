@@ -23,7 +23,12 @@ export default async function PublicSchoolHomePage({ params, searchParams }: Pro
   const listing = await getPublicUpcomingTripsBySlug({ schoolSlug, category });
   const trips = listing?.trips ?? [];
 
-  const catLabel = category === "trip" ? "Salidas" : category === "theory" ? "Teóricas" : "Prácticas";
+  const catLabel =
+    category === "trip"
+      ? "Salidas de club"
+      : category === "theory"
+        ? "Clases teóricas"
+        : "Clases Prácticas";
 
   const formatDayTime = (iso: string) =>
     new Date(iso).toLocaleString("es-ES", {
@@ -61,31 +66,31 @@ export default async function PublicSchoolHomePage({ params, searchParams }: Pro
               href={`/${schoolSlug}?cat=trip`}
               className={
                 category === "trip"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm whitespace-normal leading-tight"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Salidas
+              Salidas de club
             </Link>
             <Link
               href={`/${schoolSlug}?cat=theory`}
               className={
                 category === "theory"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm whitespace-normal leading-tight"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Teóricas
+              Clases teóricas
             </Link>
             <Link
               href={`/${schoolSlug}?cat=practice`}
               className={
                 category === "practice"
-                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
-                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm whitespace-normal leading-tight"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Prácticas
+              Clases Prácticas
             </Link>
           </div>
         </div>
