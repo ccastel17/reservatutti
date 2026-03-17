@@ -70,7 +70,8 @@ export default async function PublicSchoolHomePage({ params, searchParams }: Pro
                   : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Salidas de club
+              <span className="block">Salidas</span>
+              <span className="block">de club</span>
             </Link>
             <Link
               href={`/${schoolSlug}?cat=theory`}
@@ -80,7 +81,8 @@ export default async function PublicSchoolHomePage({ params, searchParams }: Pro
                   : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Clases teóricas
+              <span className="block">Clases</span>
+              <span className="block">teóricas</span>
             </Link>
             <Link
               href={`/${schoolSlug}?cat=practice`}
@@ -90,7 +92,8 @@ export default async function PublicSchoolHomePage({ params, searchParams }: Pro
                   : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea whitespace-normal leading-tight"
               }
             >
-              Clases Prácticas
+              <span className="block">Clases</span>
+              <span className="block">Prácticas</span>
             </Link>
           </div>
         </div>
