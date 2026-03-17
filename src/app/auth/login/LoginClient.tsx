@@ -8,6 +8,7 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   const canSubmit = useMemo(() => {
     return email.trim().includes("@");
@@ -18,10 +19,12 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
     setSending(true);
     setMessage(null);
     setError(null);
+    setErrorDetails(null);
 
     try {
       const supabase = getSupabaseBrowser();
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
@@ -30,6 +33,7 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
 
       if (signInError) {
         setError("No se pudo enviar el enlace. Revisa el email e inténtalo de nuevo.");
+        setErrorDetails(`${signInError.message}${signInError.status ? ` (status ${signInError.status})` : ""}`);
         return;
       }
 
@@ -69,6 +73,7 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
             {error ? (
               <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
                 {error}
+                {errorDetails ? <p className="mt-2 text-xs text-coral/90">{errorDetails}</p> : null}
               </div>
             ) : null}
 
