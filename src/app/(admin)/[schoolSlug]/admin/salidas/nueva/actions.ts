@@ -11,7 +11,7 @@ const Schema = z.object({
   title: z.string().min(2).max(80),
   date: z.string().min(10), // YYYY-MM-DD
   time: z.string().min(4),  // HH:mm
-  durationMinutes: z.coerce.number().int().min(30).max(600),
+  durationHours: z.coerce.number().min(0.5).max(10),
   capacity: z.coerce.number().int().min(1).max(200),
   meetingPoint: z.string().optional(),
   description: z.string().optional(),
@@ -24,7 +24,7 @@ export async function createTrip(formData: FormData) {
     title: formData.get("title"),
     date: formData.get("date"),
     time: formData.get("time"),
-    durationMinutes: formData.get("durationMinutes"),
+    durationHours: formData.get("durationHours"),
     capacity: formData.get("capacity"),
     meetingPoint: formData.get("meetingPoint") ?? undefined,
     description: formData.get("description") ?? undefined,
@@ -34,7 +34,7 @@ export async function createTrip(formData: FormData) {
     redirect("/");
   }
 
-  const { schoolSlug, category, title, date, time, durationMinutes, capacity, meetingPoint, description } =
+  const { schoolSlug, category, title, date, time, durationHours, capacity, meetingPoint, description } =
     parsed.data;
 
   const { school } = await requireAdminSchoolAccess({
@@ -42,6 +42,7 @@ export async function createTrip(formData: FormData) {
     nextPath: `/${schoolSlug}/admin/salidas/nueva`,
   });
 
+  const durationMinutes = Math.round(durationHours * 60);
   const startsAt = new Date(`${date}T${time}:00`);
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);
 

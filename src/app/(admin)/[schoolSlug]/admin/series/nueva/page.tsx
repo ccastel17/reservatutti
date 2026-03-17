@@ -64,13 +64,14 @@ export default async function NewSeriesPage({ params }: Props) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-sea">Duración (min)</label>
+            <label className="block text-sm font-medium text-sea">Duración (h)</label>
             <input
               type="number"
-              name="durationMinutes"
-              defaultValue={120}
-              min={30}
-              max={600}
+              name="durationHours"
+              defaultValue={2}
+              min={0.5}
+              max={10}
+              step={0.25}
               className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea outline-none focus:border-brand"
               required
             />

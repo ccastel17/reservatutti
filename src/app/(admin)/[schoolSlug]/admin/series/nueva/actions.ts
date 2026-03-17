@@ -10,7 +10,7 @@ const Schema = z.object({
   title: z.string().min(2).max(80),
   weekday: z.coerce.number().int().min(1).max(7),
   time: z.string().min(4),
-  durationMinutes: z.coerce.number().int().min(30).max(600),
+  durationHours: z.coerce.number().min(0.5).max(10),
   capacity: z.coerce.number().int().min(1).max(200),
   meetingPoint: z.string().optional(),
   description: z.string().optional(),
@@ -64,7 +64,7 @@ export async function createWeeklyTemplate(formData: FormData) {
     title: formData.get("title"),
     weekday: formData.get("weekday"),
     time: formData.get("time"),
-    durationMinutes: formData.get("durationMinutes"),
+    durationHours: formData.get("durationHours"),
     capacity: formData.get("capacity"),
     meetingPoint: formData.get("meetingPoint") ?? undefined,
     description: formData.get("description") ?? undefined,
@@ -74,13 +74,15 @@ export async function createWeeklyTemplate(formData: FormData) {
     redirect("/");
   }
 
-  const { schoolSlug, title, weekday, time, durationMinutes, capacity, meetingPoint, description } =
+  const { schoolSlug, title, weekday, time, durationHours, capacity, meetingPoint, description } =
     parsed.data;
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
     nextPath: `/${schoolSlug}/admin/series/nueva`,
   });
+
+  const durationMinutes = Math.round(durationHours * 60);
 
   const supabase = await getSupabaseServer();
 
