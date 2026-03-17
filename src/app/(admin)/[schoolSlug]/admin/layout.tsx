@@ -33,10 +33,9 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-md items-center justify-between gap-3 px-4 py-4">
-          <Link href={`/${schoolSlug}/admin`} className="shrink-0">
-            <span className="text-lg font-semibold tracking-tight">
-              <span className="text-sea">Reserva</span>
-              <span className="text-brand-700">Tutti</span>
+          <Link href={`/${schoolSlug}/admin`} className="shrink-0" title="ReservaTutti">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface-2 text-sm font-semibold tracking-tight text-sea shadow-sm">
+              RT
             </span>
           </Link>
           <AdminTopTabs schoolSlug={schoolSlug} activityUnreadCount={activityUnreadCount} />
