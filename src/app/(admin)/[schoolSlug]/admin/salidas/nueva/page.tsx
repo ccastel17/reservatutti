@@ -17,6 +17,19 @@ export default async function NewTripPage({ params }: Props) {
         <input type="hidden" name="schoolSlug" value={schoolSlug} />
 
         <div>
+          <label className="block text-sm font-medium text-sea">Tipo</label>
+          <select
+            name="category"
+            defaultValue="trip"
+            className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base font-semibold text-sea outline-none focus:border-brand"
+          >
+            <option value="trip">Salidas</option>
+            <option value="theory">Teóricas</option>
+            <option value="practice">Prácticas</option>
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-sea">Título</label>
           <input
             name="title"

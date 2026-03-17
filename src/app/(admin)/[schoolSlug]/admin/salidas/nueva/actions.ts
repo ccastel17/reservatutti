@@ -7,6 +7,7 @@ import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess"
 
 const Schema = z.object({
   schoolSlug: z.string().min(1),
+  category: z.enum(["trip", "theory", "practice"]).optional().default("trip"),
   title: z.string().min(2).max(80),
   date: z.string().min(10), // YYYY-MM-DD
   time: z.string().min(4),  // HH:mm
@@ -19,6 +20,7 @@ const Schema = z.object({
 export async function createTrip(formData: FormData) {
   const parsed = Schema.safeParse({
     schoolSlug: formData.get("schoolSlug"),
+    category: formData.get("category") ?? undefined,
     title: formData.get("title"),
     date: formData.get("date"),
     time: formData.get("time"),
@@ -32,7 +34,7 @@ export async function createTrip(formData: FormData) {
     redirect("/");
   }
 
-  const { schoolSlug, title, date, time, durationMinutes, capacity, meetingPoint, description } =
+  const { schoolSlug, category, title, date, time, durationMinutes, capacity, meetingPoint, description } =
     parsed.data;
 
   const { school } = await requireAdminSchoolAccess({
@@ -56,6 +58,7 @@ export async function createTrip(formData: FormData) {
       capacity,
       is_visible: true,
       status: "scheduled",
+      category,
     })
     .select("id")
     .single();

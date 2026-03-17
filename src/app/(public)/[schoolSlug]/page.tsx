@@ -5,16 +5,25 @@ import { getPublicUpcomingTripsBySlug } from "@/lib/data/publicTrips";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
+  searchParams: Promise<{ cat?: string }>;
 };
 
-export default async function PublicSchoolHomePage({ params }: Props) {
+export default async function PublicSchoolHomePage({ params, searchParams }: Props) {
   const { schoolSlug } = await params;
+  const sp = await searchParams;
+
+  const category =
+    sp.cat === "trip" || sp.cat === "theory" || sp.cat === "practice"
+      ? (sp.cat as "trip" | "theory" | "practice")
+      : "trip";
 
   const school = await getSchoolBySlug(schoolSlug);
   if (!school) notFound();
 
-  const listing = await getPublicUpcomingTripsBySlug({ schoolSlug });
+  const listing = await getPublicUpcomingTripsBySlug({ schoolSlug, category });
   const trips = listing?.trips ?? [];
+
+  const catLabel = category === "trip" ? "Salidas" : category === "theory" ? "Teóricas" : "Prácticas";
 
   const formatDayTime = (iso: string) =>
     new Date(iso).toLocaleString("es-ES", {
@@ -43,17 +52,54 @@ export default async function PublicSchoolHomePage({ params }: Props) {
         <header className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">{school.slug}</p>
           <h1 className="text-2xl font-semibold tracking-tight text-sea">{school.name}</h1>
-          <p className="text-sm text-muted">Próximas salidas publicadas</p>
+          <p className="text-sm text-muted">Próximas {catLabel.toLowerCase()} publicadas</p>
         </header>
 
-      <section className="mt-6 space-y-2">
-        {trips.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <p className="text-sm font-semibold text-sea">No hay salidas publicadas ahora mismo.</p>
-            <p className="mt-1 text-sm text-muted">Vuelve más tarde.</p>
+        <div className="mt-5 rounded-2xl border border-border bg-surface-2 p-1">
+          <div className="grid grid-cols-3 gap-1">
+            <Link
+              href={`/${schoolSlug}?cat=trip`}
+              className={
+                category === "trip"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+              }
+            >
+              Salidas
+            </Link>
+            <Link
+              href={`/${schoolSlug}?cat=theory`}
+              className={
+                category === "theory"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+              }
+            >
+              Teóricas
+            </Link>
+            <Link
+              href={`/${schoolSlug}?cat=practice`}
+              className={
+                category === "practice"
+                  ? "rounded-xl bg-surface px-3 py-2 text-center text-sm font-semibold text-sea shadow-sm"
+                  : "rounded-xl px-3 py-2 text-center text-sm font-semibold text-muted hover:text-sea"
+              }
+            >
+              Prácticas
+            </Link>
           </div>
-        ) : (
-          trips.map((t) => (
+        </div>
+
+        <section className="mt-6 space-y-2">
+          {trips.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+              <p className="text-sm font-semibold text-sea">
+                No hay {catLabel.toLowerCase()} publicadas ahora mismo.
+              </p>
+              <p className="mt-1 text-sm text-muted">Vuelve más tarde.</p>
+            </div>
+          ) : (
+            trips.map((t) => (
             <Link
               key={t.id}
               href={`/${schoolSlug}/salidas/${t.id}`}
@@ -98,9 +144,9 @@ export default async function PublicSchoolHomePage({ params }: Props) {
                 <p className="mt-3 line-clamp-2 text-sm text-muted">{oneLine(t.description)}</p>
               ) : null}
             </Link>
-          ))
-        )}
-      </section>
+            ))
+          )}
+        </section>
 
       <footer className="mt-8">
         <Link href={`/${schoolSlug}/admin`} className="text-sm font-semibold text-muted">

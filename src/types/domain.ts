@@ -19,6 +19,7 @@ export type Trip = {
   capacity: number;
   is_visible: boolean;
   status: "scheduled" | "cancelled" | "closed";
+  category: "trip" | "theory" | "practice";
   cancelled_at: string | null;
   closed_at: string | null;
   created_at: string;

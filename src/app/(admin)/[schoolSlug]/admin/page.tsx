@@ -4,10 +4,11 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getHiddenTripsBySchoolId, getTripsBySchoolId } from "@/lib/data/adminTrips";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 import { AdminTripsViewSelect } from "@/components/admin/AdminTripsViewSelect";
+import { AdminTripsCategorySelect } from "@/components/admin/AdminTripsCategorySelect";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
-  searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string; cat?: string }>;
 };
 
 type ViewKey =
@@ -32,6 +33,11 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
     sp.view === "completas"
       ? (sp.view as ViewKey)
       : ("proximas" as const);
+
+  const category =
+    sp.cat === "trip" || sp.cat === "theory" || sp.cat === "practice"
+      ? (sp.cat as "trip" | "theory" | "practice")
+      : null;
 
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -58,6 +64,8 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
   const visibleTripsForView = allVisibleTrips.filter((t) => {
     const startsAt = new Date(t.starts_at);
     const isFuture = startsAt >= now;
+
+    if (category && t.category !== category) return false;
 
     if (view === "todas") return true;
     if (view === "proximas") return isFuture && t.status !== "cancelled";
@@ -203,6 +211,10 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
               { key: "canceladas", label: "Canceladas" },
             ]}
           />
+        </div>
+
+        <div className="mt-3">
+          <AdminTripsCategorySelect value={category ?? ""} />
         </div>
 
         <div className="mt-3 space-y-2">
