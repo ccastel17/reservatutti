@@ -2,6 +2,18 @@ do $$
 begin
   if not exists (select 1 from pg_type where typname = 'reservation_status') then
     create type public.reservation_status as enum ('confirmed', 'pending', 'cancelled');
+  else
+    if not exists (
+      select 1
+        from pg_enum e
+        join pg_type t on t.oid = e.enumtypid
+        join pg_namespace n on n.oid = t.typnamespace
+        where n.nspname = 'public'
+          and t.typname = 'reservation_status'
+          and e.enumlabel = 'pending'
+    ) then
+      alter type public.reservation_status add value 'pending';
+    end if;
   end if;
 end
 $$;
