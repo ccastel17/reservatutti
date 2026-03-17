@@ -1,7 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getAllSchools } from "@/lib/data/schools";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const sp = await searchParams;
+  const code = sp.code;
+
+  if (code) {
+    redirect(`/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent("/")}`);
+  }
+
   const schools = await getAllSchools();
 
   return (
