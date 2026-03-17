@@ -26,6 +26,8 @@ export function ReservationForm(props: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isWaitlist = props.spotsLeft <= 0;
+
   const canSubmit = useMemo(() => {
     return name.trim().length >= 2 && phone.trim().length >= 6 && !submitting;
   }, [name, phone, submitting]);
@@ -145,13 +147,34 @@ export function ReservationForm(props: Props) {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+        className={
+          isWaitlist
+            ? "w-full rounded-xl bg-amber-500 px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+            : "w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+        }
       >
-        {submitting
-          ? "Apuntándote…"
-          : props.spotsLeft <= 0
-            ? "Apuntarme en lista de espera"
-            : "Apuntarme"}
+        {submitting ? (
+          "Apuntándote…"
+        ) : isWaitlist ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+            Apuntarme en lista de espera
+          </span>
+        ) : (
+          "Apuntarme"
+        )}
       </button>
 
       <p className="text-xs text-muted">
