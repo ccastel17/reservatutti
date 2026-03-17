@@ -17,7 +17,7 @@ export default async function SuperAdminPage({ searchParams }: Props) {
     <main className="mx-auto w-full max-w-md px-4 py-8">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Super Admin</p>
       <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Escuelas</h1>
-      <p className="mt-1 text-sm text-muted">Crea una escuela y genera el enlace de acceso para su admin.</p>
+      <p className="mt-1 text-sm text-muted">Crea una escuela y genera el enlace de acceso. Debes copiarlo y enviarlo al admin.</p>
 
       {sp.ok ? (
         <div className="mt-4 rounded-xl border border-brand/30 bg-brand-50 p-3 text-sm text-brand-700">{sp.ok}</div>
@@ -28,10 +28,10 @@ export default async function SuperAdminPage({ searchParams }: Props) {
 
       {sp.invite ? (
         <div className="mt-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-          <p className="text-sm font-semibold text-sea">Enlace de acceso</p>
+          <p className="text-sm font-semibold text-sea">Enlace de acceso (cópialo y envíalo)</p>
           <p className="mt-1 break-all text-xs text-muted">{sp.invite}</p>
           <CopyToClipboardOnLoad text={sp.invite} />
-          <p className="mt-2 text-xs text-muted">Copiado al portapapeles si tu navegador lo permite.</p>
+          <p className="mt-2 text-xs text-muted">Copiado al portapapeles si tu navegador lo permite. Envíalo por WhatsApp o email.</p>
         </div>
       ) : null}
 
