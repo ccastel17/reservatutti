@@ -11,6 +11,7 @@ type Props = {
 type ApiError = {
   error: string;
   code?: string;
+  details?: string;
 };
 
 type ApiOk = {
@@ -82,7 +83,11 @@ export function ReservationForm(props: Props) {
 
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as ApiError | null;
-        setError(data?.error ?? "No se pudo completar la reserva.");
+        setError(
+          [data?.error ?? "No se pudo completar la reserva.", data?.details ? `(${data.details})` : null]
+            .filter(Boolean)
+            .join(" ")
+        );
         return;
       }
 

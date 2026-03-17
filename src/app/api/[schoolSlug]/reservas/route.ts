@@ -165,6 +165,11 @@ export async function POST(
         ? String((bookingError as { code?: unknown }).code)
         : null;
 
+    const pgMessage =
+      typeof bookingError === "object" && bookingError !== null && "message" in bookingError
+        ? String((bookingError as { message?: unknown }).message)
+        : null;
+
     if (pgCode === "23505") {
       return NextResponse.json(
         { error: "Ya estabas apuntado a esta salida." },
@@ -172,7 +177,16 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ error: "No se pudo completar la reserva." }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "No se pudo completar la reserva.",
+        details: [pgCode ? `code=${pgCode}` : null, pgMessage ? pgMessage : null]
+          .filter(Boolean)
+          .join(" | ")
+          .trim(),
+      },
+      { status: 500 }
+    );
   }
 
   if (!willBePending) {
