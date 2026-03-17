@@ -7,6 +7,18 @@ export type PublicTripDetail = {
   trip: Trip;
   occupied: number;
   spotsLeft: number;
+  confirmed: Array<{
+    id: string;
+    participantName: string;
+    hasPlusOne: boolean;
+    createdAt: string;
+  }>;
+  pending: Array<{
+    id: string;
+    participantName: string;
+    hasPlusOne: boolean;
+    createdAt: string;
+  }>;
 };
 
 export type PublicTripListRow = Pick<
@@ -185,19 +197,42 @@ export async function getPublicTripDetailBySlugAndId(params: {
 
   const { data: reservations, error: resError } = await supabase
     .from("reservations")
-    .select("has_plus_one")
+    .select("id, status, participant_name, has_plus_one, created_at")
     .eq("event_id", params.tripId)
     .eq("school_id", school.id)
-    .eq("status", "confirmed");
+    .in("status", ["confirmed", "pending"]);
 
   if (resError) throw new Error(resError.message);
 
-  const reservationsRows = (reservations ?? []) as Array<{ has_plus_one: boolean }>;
+  const reservationsRows = (reservations ?? []) as Array<{
+    id: string;
+    status: "confirmed" | "pending" | "cancelled";
+    participant_name: string;
+    has_plus_one: boolean;
+    created_at: string;
+  }>;
 
-  const occupied = reservationsRows.reduce(
-    (sum, r) => sum + 1 + (r.has_plus_one ? 1 : 0),
-    0
-  );
+  const confirmed = reservationsRows
+    .filter((r) => r.status === "confirmed")
+    .map((r) => ({
+      id: r.id,
+      participantName: r.participant_name,
+      hasPlusOne: r.has_plus_one,
+      createdAt: r.created_at,
+    }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+  const pending = reservationsRows
+    .filter((r) => r.status === "pending")
+    .map((r) => ({
+      id: r.id,
+      participantName: r.participant_name,
+      hasPlusOne: r.has_plus_one,
+      createdAt: r.created_at,
+    }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+  const occupied = confirmed.reduce((sum, r) => sum + 1 + (r.hasPlusOne ? 1 : 0), 0);
 
   const typedTrip = trip as unknown as Trip;
   const spotsLeft = Math.max(0, typedTrip.capacity - occupied);
@@ -207,5 +242,7 @@ export async function getPublicTripDetailBySlugAndId(params: {
     trip: typedTrip,
     occupied,
     spotsLeft,
+    confirmed,
+    pending,
   };
 }

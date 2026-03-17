@@ -235,11 +235,11 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
             <input type="hidden" name="eventId" value={eventId} />
 
             <div>
-              <label className="block text-xs font-medium text-muted">Nombre</label>
+              <label className="block text-xs font-medium text-muted">Nombre y Apellido/s</label>
               <input
                 name="participantName"
                 className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
-                placeholder="Ej. Marta"
+                placeholder="Ej. Marta López"
                 required
               />
             </div>
@@ -437,7 +437,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm font-semibold text-sea">Pendientes</p>
-              <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
                 {pendingRows.length}
               </span>
             </div>
@@ -462,7 +462,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
                             {idx + 1}. {r.participant_name}
                             {r.has_plus_one ? " (+1)" : ""}
                           </p>
-                          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
                             Pendiente
                           </span>
                         </div>

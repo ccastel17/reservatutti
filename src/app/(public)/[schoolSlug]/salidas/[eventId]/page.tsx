@@ -76,7 +76,7 @@ export default async function PublicTripDetailPage({ params }: Props) {
 
   if (!detail) notFound();
 
-  const { trip, spotsLeft } = detail;
+  const { trip, spotsLeft, confirmed, pending } = detail;
   const canBook = trip.status === "scheduled";
   const warningText =
     trip.status === "cancelled"
@@ -157,12 +157,71 @@ export default async function PublicTripDetailPage({ params }: Props) {
                 ? "mt-6 rounded-2xl border border-coral/30 bg-coral/10 p-4"
                 : trip.status === "closed"
                   ? "mt-6 rounded-2xl border border-border bg-surface-2 p-4"
-                  : "mt-6 rounded-2xl border border-border bg-sea-50 p-4"
+                  : "mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4"
             }
           >
             <p className="text-sm font-semibold text-sea">Aviso</p>
-            <p className="mt-1 text-sm text-muted">{warningText}</p>
+            <p className={trip.status === "scheduled" && spotsLeft <= 0 ? "mt-1 text-sm text-amber-800" : "mt-1 text-sm text-muted"}>
+              {warningText}
+            </p>
           </div>
+        ) : null}
+
+        {(confirmed.length > 0 || pending.length > 0) && trip.status !== "cancelled" ? (
+          <section className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-sea">Participantes</h2>
+
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm font-semibold text-sea">Inscriptos</p>
+              <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">{confirmed.length}</span>
+            </div>
+
+            {confirmed.length === 0 ? (
+              <div className="mt-2 rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-sm text-muted">Aún no hay inscriptos.</p>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {confirmed.map((r, idx) => (
+                  <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                    <p className="text-sm font-semibold text-sea">
+                      {idx + 1}. {r.participantName}
+                      {r.hasPlusOne ? " (+1)" : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex items-center justify-between">
+              <p className="text-sm font-semibold text-sea">Lista de espera</p>
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                {pending.length}
+              </span>
+            </div>
+
+            {pending.length === 0 ? (
+              <div className="mt-2 rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-sm text-muted">No hay nadie en lista de espera.</p>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {pending.map((r, idx) => (
+                  <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-sea">
+                        {idx + 1}. {r.participantName}
+                        {r.hasPlusOne ? " (+1)" : ""}
+                      </p>
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                        En espera
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         ) : null}
 
       <section className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">

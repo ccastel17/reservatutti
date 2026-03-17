@@ -68,7 +68,7 @@ export default async function AdminActivityPage({ params }: Props) {
     const time = start ? start.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) : "";
 
     if (r.type === "waitlist_promoted") {
-      return `Ya has sido confirmado para la salida "${title}" el día ${day} en el horario ${time}.`;
+      return `Sobre tu inscripción en "${title}" (${day} ${time}). Ya has sido confirmado. Contáctanos por cualquier duda. Saludos.`;
     }
 
     return `Sobre tu inscripción en "${title}" (${day} ${time}).`;

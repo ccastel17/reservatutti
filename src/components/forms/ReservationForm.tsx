@@ -105,12 +105,12 @@ export function ReservationForm(props: Props) {
   return (
     <form onSubmit={onSubmit} className="mt-6 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-sea">Tu nombre</label>
+        <label className="block text-sm font-medium text-sea">Nombre y Apellido/s</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
-          placeholder="Ej. Carlos"
+          placeholder="Ej. Carlos Pérez"
           autoComplete="name"
         />
       </div>
