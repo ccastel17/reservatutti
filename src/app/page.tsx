@@ -43,7 +43,7 @@ export default async function Home({
 
           <div className="pt-2">
             <Link
-              href="/auth/login?next=/superadmin"
+              href="/admin"
               className="inline-flex w-full items-center justify-center rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm"
             >
               Acceso organizadores
