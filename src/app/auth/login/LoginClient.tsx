@@ -5,11 +5,18 @@ import { getSupabaseBrowser } from "@/lib/supabase/browser";
 
 export default function LoginClient({
   nextPath,
-  mode = "otp",
+  mode,
 }: {
   nextPath: string;
   mode?: "otp" | "password";
 }) {
+  const effectiveMode = useMemo<"otp" | "password">(() => {
+    if (mode === "password" || mode === "otp") return mode;
+    if (typeof window === "undefined") return "otp";
+    const m = new URLSearchParams(window.location.search).get("mode");
+    return m === "password" ? "password" : "otp";
+  }, [mode]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
@@ -19,9 +26,9 @@ export default function LoginClient({
 
   const canSubmit = useMemo(() => {
     const okEmail = email.trim().includes("@");
-    if (mode === "password") return okEmail && password.length >= 6;
+    if (effectiveMode === "password") return okEmail && password.length >= 6;
     return okEmail;
-  }, [email, mode, password]);
+  }, [email, effectiveMode, password]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +40,7 @@ export default function LoginClient({
     try {
       const supabase = getSupabaseBrowser();
 
-      if (mode === "password") {
+      if (effectiveMode === "password") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
@@ -82,7 +89,7 @@ export default function LoginClient({
           <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Entrar</h1>
           <p className="mt-2 text-sm text-muted">
-            {mode === "password"
+            {effectiveMode === "password"
               ? "Introduce tu email y contraseña para acceder al panel."
               : "Te enviaremos un enlace para acceder al panel."}
           </p>
@@ -100,7 +107,7 @@ export default function LoginClient({
               />
             </div>
 
-            {mode === "password" ? (
+            {effectiveMode === "password" ? (
               <div>
                 <label className="block text-sm font-medium text-sea">Contraseña</label>
                 <input
@@ -132,7 +139,7 @@ export default function LoginClient({
               disabled={!canSubmit || sending}
               className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {sending ? "Enviando…" : mode === "password" ? "Entrar" : "Enviar enlace"}
+              {sending ? "Enviando…" : effectiveMode === "password" ? "Entrar" : "Enviar enlace"}
             </button>
           </form>
         </div>
