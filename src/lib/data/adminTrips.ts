@@ -47,7 +47,7 @@ export async function getTripsBySchoolId(
 
   const { data, error } = await query;
   if (!error) {
-    return (data ?? []) as AdminTripRow[];
+    return (data ?? []) as unknown as AdminTripRow[];
   }
 
   const msg =
@@ -96,7 +96,7 @@ export async function getUpcomingTripsBySchoolId(
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  return (data ?? []) as AdminTripRow[];
+  return (data ?? []) as unknown as AdminTripRow[];
 }
 
 export async function getHiddenTripsBySchoolId(
@@ -115,13 +115,15 @@ export async function getHiddenTripsBySchoolId(
     .limit(100);
 
   if (!error) {
-    return (data ?? []) as AdminTripRow[];
+    return (data ?? []) as unknown as AdminTripRow[];
   }
 
-  const msg =
-    typeof error === "object" && error && "message" in error
-      ? String((error as unknown as { message?: string }).message)
-      : "";
+  const msg = (() => {
+    if (typeof error !== "object" || !error) return "";
+    if (!("message" in error)) return "";
+    const value = (error as { message?: unknown }).message;
+    return typeof value === "string" ? value : String(value ?? "");
+  })();
   if (!msg.toLowerCase().includes("category") || !msg.toLowerCase().includes("does not exist")) {
     throw new Error(msg || "Error fetching trips");
   }

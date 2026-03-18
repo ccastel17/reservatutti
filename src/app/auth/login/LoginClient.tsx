@@ -3,16 +3,25 @@
 import { useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 
-export default function LoginClient({ nextPath }: { nextPath: string }) {
+export default function LoginClient({
+  nextPath,
+  mode = "otp",
+}: {
+  nextPath: string;
+  mode?: "otp" | "password";
+}) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   const canSubmit = useMemo(() => {
-    return email.trim().includes("@");
-  }, [email]);
+    const okEmail = email.trim().includes("@");
+    if (mode === "password") return okEmail && password.length >= 6;
+    return okEmail;
+  }, [email, mode, password]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,6 +32,23 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
 
     try {
       const supabase = getSupabaseBrowser();
+
+      if (mode === "password") {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+
+        if (signInError) {
+          setError("No se pudo iniciar sesión. Revisa los datos e inténtalo de nuevo.");
+          setErrorDetails(`${signInError.message}${signInError.status ? ` (status ${signInError.status})` : ""}`);
+          return;
+        }
+
+        window.location.assign(nextPath);
+        return;
+      }
+
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
@@ -55,7 +81,11 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
         <div className="w-full rounded-2xl border border-white/15 bg-white/85 p-6 shadow-lg backdrop-blur">
           <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-sea">Entrar</h1>
-          <p className="mt-2 text-sm text-muted">Te enviaremos un enlace para acceder al panel.</p>
+          <p className="mt-2 text-sm text-muted">
+            {mode === "password"
+              ? "Introduce tu email y contraseña para acceder al panel."
+              : "Te enviaremos un enlace para acceder al panel."}
+          </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div>
@@ -69,6 +99,20 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
                 inputMode="email"
               />
             </div>
+
+            {mode === "password" ? (
+              <div>
+                <label className="block text-sm font-medium text-sea">Contraseña</label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-4 py-3 text-base text-sea placeholder:text-muted outline-none focus:border-brand"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+              </div>
+            ) : null}
 
             {error ? (
               <div className="rounded-xl border border-coral/30 bg-coral/10 p-4 text-sm text-coral">
@@ -88,7 +132,7 @@ export default function LoginClient({ nextPath }: { nextPath: string }) {
               disabled={!canSubmit || sending}
               className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {sending ? "Enviando…" : "Enviar enlace"}
+              {sending ? "Enviando…" : mode === "password" ? "Entrar" : "Enviar enlace"}
             </button>
           </form>
         </div>

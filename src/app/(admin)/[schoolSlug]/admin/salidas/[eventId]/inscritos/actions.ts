@@ -242,10 +242,14 @@ export async function cancelReservation(formData: FormData) {
       );
     }
 
-    const promotedId =
-      Array.isArray(rpcData) && rpcData.length > 0
-        ? ((rpcData[0] as { promoted_reservation_id?: string | null })?.promoted_reservation_id ?? null)
-        : null;
+    const promotedId = (() => {
+      if (!Array.isArray(rpcData) || rpcData.length === 0) return null;
+      const first: unknown = rpcData[0];
+      if (typeof first !== "object" || first === null) return null;
+      if (!("promoted_reservation_id" in first)) return null;
+      const value = (first as { promoted_reservation_id?: unknown }).promoted_reservation_id;
+      return typeof value === "string" ? value : null;
+    })();
 
     if (promotedId) {
       try {
