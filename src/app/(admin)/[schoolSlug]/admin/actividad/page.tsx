@@ -66,6 +66,24 @@ export default async function AdminActivityPage({ params }: Props) {
     return `${date} ${time}`;
   };
 
+  const getTripDuplicatedPayload = (payload: unknown) => {
+    if (typeof payload !== "object" || payload === null) return null;
+    const p = payload as {
+      moved_names?: unknown;
+      public_path?: unknown;
+      starts_at?: unknown;
+    };
+
+    const movedNames = Array.isArray(p.moved_names)
+      ? p.moved_names.map((v) => (typeof v === "string" ? v.trim() : "")).filter(Boolean)
+      : [];
+
+    const publicPath = typeof p.public_path === "string" ? p.public_path : null;
+    const startsAt = typeof p.starts_at === "string" ? p.starts_at : null;
+
+    return { movedNames, publicPath, startsAt };
+  };
+
   const buildWhatsAppMessage = (r: ActivityRow) => {
     const title = r.events?.title ?? "";
     const start = r.events?.starts_at ? new Date(r.events.starts_at) : null;
@@ -73,6 +91,16 @@ export default async function AdminActivityPage({ params }: Props) {
       ? start.toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" })
       : "";
     const time = start ? start.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) : "";
+
+    if (r.type === "trip_duplicated") {
+      const p = getTripDuplicatedPayload(r.payload);
+      const startsAt = p?.startsAt ? new Date(p.startsAt) : start;
+      const day2 = startsAt
+        ? startsAt.toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" })
+        : day;
+      const publicLink = p?.publicPath ? `https://www.reservatutti.com${p.publicPath}` : "";
+      return `Se ha creado una salida nueva para el "${day2}". Revisar lista de confirmados. ${publicLink}`.trim();
+    }
 
     if (r.type === "waitlist_promoted") {
       return `Sobre tu inscripción en "${title}" (${day} ${time}). Ya has sido confirmado. Contáctanos por cualquier duda. Saludos.`;
@@ -108,6 +136,11 @@ export default async function AdminActivityPage({ params }: Props) {
               ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(buildWhatsAppMessage(r))}`
               : null;
 
+            const tripDuplicatedPayload = r.type === "trip_duplicated" ? getTripDuplicatedPayload(r.payload) : null;
+            const adminWaLink = r.type === "trip_duplicated"
+              ? `https://wa.me/?text=${encodeURIComponent(buildWhatsAppMessage(r))}`
+              : null;
+
             const title =
               r.type === "waitlist_promoted"
                 ? isPromotionFromAdminCancellation(r.payload)
@@ -119,6 +152,8 @@ export default async function AdminActivityPage({ params }: Props) {
                     }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
                 : r.type === "waitlist_joined"
                   ? "Nueva persona en lista de espera"
+                  : r.type === "trip_duplicated"
+                    ? `Se creó una salida nueva con ${tripDuplicatedPayload?.movedNames.length ?? 0} integrantes.`
                   : "Actividad";
 
             const subtitle = r.type === "waitlist_promoted" ? null : r.events?.title ? r.events.title : null;
@@ -144,6 +179,34 @@ export default async function AdminActivityPage({ params }: Props) {
                 </summary>
 
                 <div className="mt-4 space-y-3 border-t border-border/60 pt-4">
+                  {r.type === "trip_duplicated" ? (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted">Integrantes</p>
+                      {tripDuplicatedPayload && tripDuplicatedPayload.movedNames.length > 0 ? (
+                        <div className="mt-1 space-y-1">
+                          {tripDuplicatedPayload.movedNames.map((name) => (
+                            <p key={name} className="text-sm font-semibold text-sea">
+                              {name}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-sm text-muted">No se movieron integrantes.</p>
+                      )}
+
+                      {tripDuplicatedPayload?.publicPath ? (
+                        <Link
+                          href={tripDuplicatedPayload.publicPath}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                        >
+                          Ver publicación
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   {r.participant_name ? (
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-muted">Persona</p>
@@ -153,6 +216,17 @@ export default async function AdminActivityPage({ params }: Props) {
                   ) : null}
 
                   <div className="flex items-center justify-end gap-2">
+                    {adminWaLink ? (
+                      <Link
+                        href={adminWaLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                      >
+                        Enviar WhatsApp
+                      </Link>
+                    ) : null}
+
                     {waLink ? (
                       <Link
                         href={waLink}

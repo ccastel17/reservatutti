@@ -79,7 +79,7 @@ export async function confirmDuplicateTrip(formData: FormData) {
 
   const { data: pendingRows, error: pendingError } = await supabase
     .from("reservations")
-    .select("id")
+    .select("id, participant_name")
     .eq("school_id", school.id)
     .eq("event_id", eventId)
     .eq("status", "pending")
@@ -95,6 +95,10 @@ export async function confirmDuplicateTrip(formData: FormData) {
   }
 
   const pendingIds = (pendingRows ?? []).map((r) => r.id);
+  const movedNames = (pendingRows ?? [])
+    .map((r) => ("participant_name" in r ? String((r as { participant_name?: unknown }).participant_name ?? "") : ""))
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   const { data: inserted, error: insertError } = await supabase
     .from("events")
@@ -138,6 +142,25 @@ export async function confirmDuplicateTrip(formData: FormData) {
         )}`
       );
     }
+  }
+
+  try {
+    await supabase.from("school_activity").insert({
+      school_id: school.id,
+      type: "trip_duplicated",
+      event_id: newEventId,
+      reservation_id: null,
+      participant_name: null,
+      participant_phone_e164: null,
+      payload: {
+        original_event_id: eventId,
+        moved_names: movedNames,
+        public_path: `/${schoolSlug}/salidas/${newEventId}`,
+        starts_at: startsAt.toISOString(),
+      },
+    });
+  } catch {
+    // ignore
   }
 
   redirect(
