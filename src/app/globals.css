@@ -82,8 +82,16 @@ body {
   }
 
   :where(button, a, summary, [role="button"], input[type="button"], input[type="submit"], input[type="reset"])[class*="border-border"]:hover {
+    background-color: var(--brand-50);
+    border-color: var(--brand-700);
+    box-shadow: 0 10px 22px rgba(11, 98, 214, 0.12);
+  }
+
+  :where(summary):hover {
     background-color: var(--surface-2);
-    border-color: var(--brand);
-    box-shadow: 0 10px 22px rgba(11, 45, 92, 0.08);
+  }
+
+  :where(a):hover {
+    color: var(--brand-700);
   }
 }
