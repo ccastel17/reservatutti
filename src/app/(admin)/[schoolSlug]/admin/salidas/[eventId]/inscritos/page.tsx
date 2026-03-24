@@ -522,6 +522,21 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
                 );
               })
             )}
+
+            {pendingRows.length > 0 ? (
+              <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-sea">Crear salida nueva con los usuarios en lista de espera</p>
+                <p className="mt-1 text-sm text-amber-800">
+                  Hay {pendingRows.length} personas pendientes para {trip.capacity} plazas.
+                </p>
+                <Link
+                  href={`/${schoolSlug}/admin/salidas/${eventId}/duplicar`}
+                  className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm"
+                >
+                  Crear nueva salida
+                </Link>
+              </div>
+            ) : null}
           </>
         )}
       </div>
