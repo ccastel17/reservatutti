@@ -81,6 +81,13 @@ export default async function AdminActivityPage({ params }: Props) {
     return `Sobre tu inscripción en "${title}" (${day} ${time}).`;
   };
 
+  const isPromotionFromAdminCancellation = (payload: unknown) => {
+    if (typeof payload !== "object" || payload === null) return false;
+    if (!("cancelled_reservation_id" in payload)) return false;
+    const value = (payload as { cancelled_reservation_id?: unknown }).cancelled_reservation_id;
+    return typeof value === "string" && value.length > 0;
+  };
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Panel</p>
@@ -103,9 +110,13 @@ export default async function AdminActivityPage({ params }: Props) {
 
             const title =
               r.type === "waitlist_promoted"
-                ? `El usuario "${r.participant_name ?? ""}" pasó de lista de espera a confirmado para la salida "${
-                    r.events?.title ?? ""
-                  }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
+                ? isPromotionFromAdminCancellation(r.payload)
+                  ? `El usuario "${r.participant_name ?? ""}" pasó a confirmados en la salida "${
+                      r.events?.title ?? ""
+                    }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
+                  : `El usuario "${r.participant_name ?? ""}" pasó de lista de espera a confirmado para la salida "${
+                      r.events?.title ?? ""
+                    }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
                 : r.type === "waitlist_joined"
                   ? "Nueva persona en lista de espera"
                   : "Actividad";
