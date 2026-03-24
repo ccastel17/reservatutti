@@ -59,6 +59,13 @@ export default async function AdminActivityPage({ params }: Props) {
       minute: "2-digit",
     });
 
+  const formatEventDateTime = (iso: string) => {
+    const d = new Date(iso);
+    const date = d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const time = d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    return `${date} ${time}`;
+  };
+
   const buildWhatsAppMessage = (r: ActivityRow) => {
     const title = r.events?.title ?? "";
     const start = r.events?.starts_at ? new Date(r.events.starts_at) : null;
@@ -96,12 +103,14 @@ export default async function AdminActivityPage({ params }: Props) {
 
             const title =
               r.type === "waitlist_promoted"
-                ? "Promoción de lista de espera"
+                ? `El usuario "${r.participant_name ?? ""}" pasó de lista de espera a confirmado para la salida "${
+                    r.events?.title ?? ""
+                  }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
                 : r.type === "waitlist_joined"
                   ? "Nueva persona en lista de espera"
                   : "Actividad";
 
-            const subtitle = r.events?.title ? r.events.title : null;
+            const subtitle = r.type === "waitlist_promoted" ? null : r.events?.title ? r.events.title : null;
 
             return (
               <details key={r.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
