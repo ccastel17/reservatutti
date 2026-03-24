@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 import { normalizePhoneToE164Spain } from "@/lib/utils/phone";
@@ -260,14 +261,16 @@ export async function cancelReservation(formData: FormData) {
 
     if (promotedId) {
       try {
-        const { data: promoted } = await supabase
+        const admin = getSupabaseAdmin();
+
+        const { data: promoted } = await admin
           .from("reservations")
           .select("id, participant_name, participant_phone_e164, event_id")
           .eq("id", promotedId)
           .eq("school_id", school.id)
           .maybeSingle();
 
-        await supabase.from("school_activity").insert({
+        await admin.from("school_activity").insert({
           school_id: school.id,
           type: "waitlist_promoted",
           event_id: promoted?.event_id ?? eventId,
