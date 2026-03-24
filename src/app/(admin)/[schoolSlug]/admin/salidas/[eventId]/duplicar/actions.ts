@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess";
 
@@ -145,7 +146,8 @@ export async function confirmDuplicateTrip(formData: FormData) {
   }
 
   try {
-    await supabase.from("school_activity").insert({
+    const admin = getSupabaseAdmin();
+    await admin.from("school_activity").insert({
       school_id: school.id,
       type: "trip_duplicated",
       event_id: newEventId,
