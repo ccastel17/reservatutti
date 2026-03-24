@@ -51,3 +51,26 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@layer base {
+  :where(button, a, input[type="button"], input[type="submit"], input[type="reset"]) {
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease,
+      filter 150ms ease;
+  }
+
+  :where(button, a, input[type="button"], input[type="submit"], input[type="reset"])[class*="bg-brand"]:hover {
+    background-color: var(--brand-700);
+  }
+
+  :where(button, a, input[type="button"], input[type="submit"], input[type="reset"])[class*="bg-coral"]:hover {
+    filter: brightness(0.95);
+  }
+
+  :where(button, a, input[type="button"], input[type="submit"], input[type="reset"])[class*="border-border"]:hover {
+    background-color: var(--surface-2);
+  }
+}
