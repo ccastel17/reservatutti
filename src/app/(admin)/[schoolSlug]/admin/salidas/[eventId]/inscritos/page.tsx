@@ -4,7 +4,7 @@ import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess"
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 import { ShareTripButtons } from "@/components/admin/ShareTripButtons";
-import { ContactAgendaAutocomplete } from "@/components/admin/ContactAgendaAutocomplete";
+import { ContactAgendaNameAutocomplete } from "@/components/admin/ContactAgendaNameAutocomplete";
 import {
   addManualReservation,
   cancelReservation,
@@ -270,35 +270,12 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
             <input type="hidden" name="schoolSlug" value={schoolSlug} />
             <input type="hidden" name="eventId" value={eventId} />
 
-            <div>
-              <label className="block text-xs font-medium text-muted">Agenda</label>
-              <div className="mt-1">
-                <ContactAgendaAutocomplete
-                  schoolSlug={schoolSlug}
-                  inputName="contactId"
-                  placeholder="Buscar en la agenda por nombre o teléfono"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-muted">Nombre y Apellido/s</label>
-              <input
-                name="participantName"
-                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
-                placeholder="Ej. Marta López"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-muted">Teléfono</label>
-              <input
-                name="participantPhone"
-                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
-                placeholder="Ej. 600 111 222"
-                inputMode="tel"
-              />
-            </div>
+            <ContactAgendaNameAutocomplete
+              schoolSlug={schoolSlug}
+              contactIdInputName="contactId"
+              nameInputName="participantName"
+              phoneInputName="participantPhone"
+            />
 
             <label className="flex items-start gap-3 rounded-xl border border-border bg-surface-2 p-3">
               <input type="checkbox" name="hasPlusOne" className="mt-1 h-4 w-4" />
