@@ -58,6 +58,8 @@ export async function cancelTrip(formData: FormData) {
     nextPath: `/${schoolSlug}/admin/salidas/${eventId}/inscritos`,
   });
 
+  const admin = getSupabaseAdmin();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -145,7 +147,7 @@ export async function updateCapacity(formData: FormData) {
 
   const supabase = await getSupabaseServer();
 
-  const { data: reservations, error: resError } = await supabase
+  const { data: reservations, error: resError } = await admin
     .from("reservations")
     .select("has_plus_one")
     .eq("school_id", school.id)
@@ -396,12 +398,10 @@ export async function addManualReservation(formData: FormData) {
     nextPath: `/${schoolSlug}/admin/salidas/${eventId}/inscritos`,
   });
 
-  const supabase = await getSupabaseServer();
-
   const selectedContactId = parsed.data.contactId;
   const selectedContact = selectedContactId
     ? await (async () => {
-        const { data, error } = await supabase
+        const { data, error } = await admin
           .from("contacts")
           .select("id, full_name, phone_e164, reservations_count, is_frequent_override")
           .eq("id", selectedContactId)
@@ -438,7 +438,7 @@ export async function addManualReservation(formData: FormData) {
         return normalized;
       })();
 
-  const { data: trip, error: tripError } = await supabase
+  const { data: trip, error: tripError } = await admin
     .from("events")
     .select("id, capacity, status")
     .eq("id", eventId)
@@ -461,7 +461,7 @@ export async function addManualReservation(formData: FormData) {
     );
   }
 
-  const { data: reservations, error: resError } = await supabase
+  const { data: reservations, error: resError } = await admin
     .from("reservations")
     .select("has_plus_one")
     .eq("school_id", school.id)
@@ -486,7 +486,7 @@ export async function addManualReservation(formData: FormData) {
 
   const { data: existingContact, error: contactError } = selectedContact
     ? { data: selectedContact, error: null }
-    : await supabase
+    : await admin
         .from("contacts")
         .select("id, reservations_count, is_frequent_override")
         .eq("school_id", school.id)
@@ -515,7 +515,7 @@ export async function addManualReservation(formData: FormData) {
 
   let contactId = existingContact?.id ?? null;
   if (!contactId) {
-    const { data: inserted, error: insertContactError } = await supabase
+    const { data: inserted, error: insertContactError } = await admin
       .from("contacts")
       .insert({
         school_id: school.id,
@@ -536,13 +536,13 @@ export async function addManualReservation(formData: FormData) {
 
     contactId = inserted.id;
   } else if (!selectedContactId) {
-    await supabase
+    await admin
       .from("contacts")
       .update({ full_name: participantName.trim() })
       .eq("id", contactId);
   }
 
-  const { error: bookingError } = await supabase.from("reservations").insert({
+  const { error: bookingError } = await admin.from("reservations").insert({
     school_id: school.id,
     event_id: eventId,
     contact_id: contactId,
@@ -575,7 +575,7 @@ export async function addManualReservation(formData: FormData) {
 
   if (!willBePending) {
     const nowIso = new Date().toISOString();
-    await supabase
+    await admin
       .from("contacts")
       .update({
         reservations_count: (existingContact?.reservations_count ?? 0) + 1,
