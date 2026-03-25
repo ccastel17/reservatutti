@@ -8,7 +8,7 @@ import { AdminTripsCategorySelect } from "@/components/admin/AdminTripsCategoryS
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
-  searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string; cat?: string }>;
+  searchParams: Promise<{ ok?: string; err?: string; share?: string; view?: string; cat?: string; page?: string }>;
 };
 
 type ViewKey =
@@ -23,6 +23,13 @@ type ViewKey =
 export default async function AdminHomePage({ params, searchParams }: Props) {
   const { schoolSlug } = await params;
   const sp = await searchParams;
+
+  const page = (() => {
+    const n = Number(sp.page ?? "1");
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
+  })();
+
+  const pageSize = 5;
 
   const view =
     sp.view === "todas" ||
@@ -148,6 +155,23 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
     );
   }
 
+  const totalCount = visibleTripsSorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const fromIdx = (currentPage - 1) * pageSize;
+  const toIdx = fromIdx + pageSize;
+  const visibleTripsPaged = visibleTripsSorted.slice(fromIdx, toIdx);
+
+  const makePageHref = (nextPage: number) => {
+    const qp = new URLSearchParams();
+    if (sp.view) qp.set("view", sp.view);
+    if (sp.cat) qp.set("cat", sp.cat);
+    if (sp.share) qp.set("share", sp.share);
+    if (nextPage > 1) qp.set("page", String(nextPage));
+    const qs = qp.toString();
+    return `/${schoolSlug}/admin${qs ? `?${qs}` : ""}`;
+  };
+
   const viewTitle: Record<ViewKey, string> = {
     todas: "Todas las salidas",
     proximas: "Próximas salidas publicadas",
@@ -221,7 +245,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           {visibleTripsSorted.length === 0 ? (
             <p className="text-sm text-muted">No hay salidas en esta vista.</p>
           ) : (
-            visibleTripsSorted.map((t) => {
+            visibleTripsPaged.map((t) => {
               const reservations = reservationsByEventId.get(t.id) ?? [];
               const occupied = occupiedByEventId.get(t.id) ?? 0;
 
@@ -303,6 +327,40 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
             })
           )}
         </div>
+
+        {visibleTripsSorted.length > 0 ? (
+          <div className="mt-6 flex items-center justify-between rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <div>
+              <p className="text-sm font-semibold text-sea">Página {currentPage} de {totalPages}</p>
+              <p className="mt-1 text-xs text-muted">Mostrando {pageSize} por página</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href={makePageHref(Math.max(1, currentPage - 1))}
+                aria-disabled={currentPage <= 1}
+                className={
+                  currentPage <= 1
+                    ? "rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-semibold text-muted"
+                    : "rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                }
+              >
+                Anterior
+              </Link>
+              <Link
+                href={makePageHref(Math.min(totalPages, currentPage + 1))}
+                aria-disabled={currentPage >= totalPages}
+                className={
+                  currentPage >= totalPages
+                    ? "rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-semibold text-muted"
+                    : "rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                }
+              >
+                Siguiente
+              </Link>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-8">
