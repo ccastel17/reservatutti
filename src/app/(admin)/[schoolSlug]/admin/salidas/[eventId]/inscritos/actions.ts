@@ -58,8 +58,6 @@ export async function cancelTrip(formData: FormData) {
     nextPath: `/${schoolSlug}/admin/salidas/${eventId}/inscritos`,
   });
 
-  const admin = getSupabaseAdmin();
-
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -397,6 +395,8 @@ export async function addManualReservation(formData: FormData) {
     schoolSlug,
     nextPath: `/${schoolSlug}/admin/salidas/${eventId}/inscritos`,
   });
+
+  const admin = getSupabaseAdmin();
 
   const selectedContactId = parsed.data.contactId;
   const selectedContact = selectedContactId
