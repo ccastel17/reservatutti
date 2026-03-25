@@ -5,7 +5,6 @@ import { getHiddenTripsBySchoolId, getTripsBySchoolId } from "@/lib/data/adminTr
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 import { AdminTripsViewSelect } from "@/components/admin/AdminTripsViewSelect";
 import { AdminTripsCategorySelect } from "@/components/admin/AdminTripsCategorySelect";
-import { unpublishAllEvents } from "./actions";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
@@ -202,16 +201,6 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
           {sp.err}
         </div>
       ) : null}
-
-      <form action={unpublishAllEvents} className="mb-6">
-        <input type="hidden" name="schoolSlug" value={schoolSlug} />
-        <button
-          type="submit"
-          className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-semibold text-red-800"
-        >
-          Despublicar todas las publicaciones
-        </button>
-      </form>
 
       <div className="grid grid-cols-2 gap-3">
         <Link
