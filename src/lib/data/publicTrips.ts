@@ -32,23 +32,31 @@ export type PublicTripListRow = Pick<
 export async function getPublicUpcomingTripsBySlug(params: {
   schoolSlug: string;
   category?: "trip" | "theory" | "practice";
-}): Promise<{ schoolId: string; trips: PublicTripListRow[] } | null> {
+  page?: number;
+  pageSize?: number;
+}): Promise<{ schoolId: string; trips: PublicTripListRow[]; totalCount: number } | null> {
   const school = await getSchoolBySlug(params.schoolSlug);
   if (!school) return null;
 
   const supabase = getSupabaseAdmin();
   const from = new Date().toISOString();
 
+  const pageSize = Math.max(1, Math.min(50, params.pageSize ?? 5));
+  const page = Math.max(1, params.page ?? 1);
+  const fromIdx = (page - 1) * pageSize;
+  const toIdx = fromIdx + pageSize - 1;
+
   const baseQuery = supabase
     .from("events")
     .select(
-      "id, title, starts_at, ends_at, capacity, requires_min_capacity, status, meeting_point, description, category"
+      "id, title, starts_at, ends_at, capacity, requires_min_capacity, status, meeting_point, description, category",
+      { count: "exact" }
     )
     .eq("school_id", school.id)
     .eq("is_visible", true)
     .gte("starts_at", from)
     .order("starts_at", { ascending: true })
-    .limit(50);
+    .range(fromIdx, toIdx);
 
   let query = baseQuery;
 
@@ -56,7 +64,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
     query = query.eq("category", params.category);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     const msg =
@@ -67,17 +75,19 @@ export async function getPublicUpcomingTripsBySlug(params: {
     if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
       let retry = supabase
         .from("events")
-        .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description, category")
+        .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description, category", {
+          count: "exact",
+        })
         .eq("school_id", school.id)
         .eq("is_visible", true)
         .gte("starts_at", from)
         .order("starts_at", { ascending: true })
-        .limit(50);
+        .range(fromIdx, toIdx);
       if (params.category) {
         retry = retry.eq("category", params.category);
       }
 
-      const { data: fallback, error: fallbackError } = await retry;
+      const { data: fallback, error: fallbackError, count: fallbackCount } = await retry;
       if (fallbackError) throw new Error(fallbackError.message);
 
       const trips = ((fallback ?? []) as unknown as Array<
@@ -124,6 +134,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
       return {
         schoolId: school.id,
         trips: enriched,
+        totalCount: fallbackCount ?? 0,
       };
     }
 
@@ -133,18 +144,18 @@ export async function getPublicUpcomingTripsBySlug(params: {
 
     const legacyQuery = supabase
       .from("events")
-      .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description")
+      .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description", { count: "exact" })
       .eq("school_id", school.id)
       .eq("is_visible", true)
       .gte("starts_at", from)
       .order("starts_at", { ascending: true })
-      .limit(50);
+      .range(fromIdx, toIdx);
 
     if (params.category && params.category !== "trip") {
-      return { schoolId: school.id, trips: [] };
+      return { schoolId: school.id, trips: [], totalCount: 0 };
     }
 
-    const { data: legacy, error: legacyError } = await legacyQuery;
+    const { data: legacy, error: legacyError, count: legacyCount } = await legacyQuery;
     if (legacyError) throw new Error(legacyError.message);
 
     const trips = ((legacy ?? []) as unknown as Array<
@@ -194,6 +205,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
     return {
       schoolId: school.id,
       trips: enriched,
+      totalCount: legacyCount ?? 0,
     };
   }
 
@@ -244,6 +256,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
   return {
     schoolId: school.id,
     trips: enriched,
+    totalCount: count ?? 0,
   };
 }
 
