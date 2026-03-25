@@ -71,7 +71,9 @@ export function ContactAgendaNameAutocomplete(props: {
         }
 
         const json = (await res.json().catch(() => null)) as { contacts?: ContactSuggestion[] } | null;
-        setResults(json?.contacts ?? []);
+        const next = json?.contacts ?? [];
+        setResults(next);
+        setOpen(next.length > 0);
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;
         setError("No se pudo buscar en la agenda.");
@@ -124,6 +126,11 @@ export function ContactAgendaNameAutocomplete(props: {
             onFocus={() => {
               if (results.length > 0) setOpen(true);
             }}
+            onBlur={() => {
+              window.setTimeout(() => {
+                setOpen(false);
+              }, 120);
+            }}
             className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
             placeholder={props.namePlaceholder ?? "Ej. Marta López"}
             autoComplete="off"
@@ -140,17 +147,11 @@ export function ContactAgendaNameAutocomplete(props: {
           ) : null}
         </div>
 
-        {open ? (
+        {open || loading || error ? (
           <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
             <div className="p-2">
               {loading ? <p className="px-2 py-2 text-xs text-muted">Buscando…</p> : null}
               {error ? <p className="px-2 py-2 text-xs text-coral">{error}</p> : null}
-
-              {!loading && !error && results.length === 0 ? (
-                <p className="px-2 py-2 text-xs text-muted">
-                  Sin resultados. Completa el teléfono para añadirlo manualmente.
-                </p>
-              ) : null}
 
               {!error ? (
                 <ul className="max-h-56 overflow-auto">
@@ -186,6 +187,7 @@ export function ContactAgendaNameAutocomplete(props: {
           name={props.phoneInputName}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          onFocus={() => setOpen(false)}
           className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
           placeholder={props.phonePlaceholder ?? "Ej. 600 111 222"}
           inputMode="tel"
