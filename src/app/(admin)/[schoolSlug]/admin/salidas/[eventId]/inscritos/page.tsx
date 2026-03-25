@@ -36,14 +36,35 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const supabase = await getSupabaseServer();
 
-  const { data: trip, error: tripError } = await supabase
+  const { data: tripWithMin, error: tripWithMinError } = await supabase
     .from("events")
     .select("id, title, starts_at, ends_at, capacity, requires_min_capacity, is_visible, status, meeting_point, description, category")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
 
-  if (tripError) throw new Error(tripError.message);
+  const trip = await (async () => {
+    if (!tripWithMinError) return tripWithMin;
+
+    const msg =
+      typeof tripWithMinError === "object" && tripWithMinError && "message" in tripWithMinError
+        ? String((tripWithMinError as unknown as { message?: string }).message)
+        : "";
+
+    if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+      const { data: fallback, error: fallbackError } = await supabase
+        .from("events")
+        .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description, category")
+        .eq("id", eventId)
+        .eq("school_id", school.id)
+        .maybeSingle();
+      if (fallbackError) throw new Error(fallbackError.message);
+      return fallback ? { ...fallback, requires_min_capacity: false } : null;
+    }
+
+    throw new Error(tripWithMinError.message);
+  })();
+
   if (!trip) notFound();
 
   const catLabel = trip.category === "theory" ? "Teórica" : trip.category === "practice" ? "Práctica" : "Salida";
@@ -75,6 +96,15 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         is_frequent_override: boolean;
       } | null;
     }>;
+
+  const { data: contacts, error: contactsError } = await supabase
+    .from("contacts")
+    .select("id, full_name, phone_e164")
+    .eq("school_id", school.id)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  if (contactsError) throw new Error(contactsError.message);
 
   const confirmedPeople = rows
     .filter((r) => r.status === "confirmed")
@@ -249,12 +279,30 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
             <input type="hidden" name="eventId" value={eventId} />
 
             <div>
+              <label className="block text-xs font-medium text-muted">Agenda</label>
+              <select
+                name="contactId"
+                defaultValue=""
+                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea outline-none focus:border-brand"
+              >
+                <option value="">Seleccionar de la agenda (opcional)</option>
+                {(contacts ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name} · {c.phone_e164}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Si seleccionas un contacto, no hace falta completar nombre y teléfono.
+              </p>
+            </div>
+
+            <div>
               <label className="block text-xs font-medium text-muted">Nombre y Apellido/s</label>
               <input
                 name="participantName"
                 className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
                 placeholder="Ej. Marta López"
-                required
               />
             </div>
 
@@ -265,7 +313,6 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
                 className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea placeholder:text-muted outline-none focus:border-brand"
                 placeholder="Ej. 600 111 222"
                 inputMode="tel"
-                required
               />
             </div>
 

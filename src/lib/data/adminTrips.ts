@@ -33,14 +33,18 @@ export async function getTripsBySchoolId(
   const from = addDays(now, -(opts?.daysBack ?? 0)).toISOString();
   const to = addDays(now, opts?.daysForward ?? 0).toISOString();
 
-  let query = supabase
+  const baseQuery = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
+    .select(
+      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+    )
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .lte("starts_at", to)
     .order("starts_at", { ascending: true })
     .limit(opts?.limit ?? 200);
+
+  let query = baseQuery;
 
   if (opts?.visibleOnly) {
     query = query.eq("is_visible", true);
@@ -55,13 +59,37 @@ export async function getTripsBySchoolId(
     typeof error === "object" && error && "message" in error
       ? String((error as unknown as { message?: string }).message)
       : "";
+
+  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+    let retry = supabase
+      .from("events")
+      .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
+      .eq("school_id", schoolId)
+      .gte("starts_at", from)
+      .lte("starts_at", to)
+      .order("starts_at", { ascending: true })
+      .limit(opts?.limit ?? 200);
+    if (opts?.visibleOnly) {
+      retry = retry.eq("is_visible", true);
+    }
+
+    const { data: fallback, error: fallbackError } = await retry;
+    if (fallbackError) throw new Error(fallbackError.message);
+
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+      ...r,
+      requires_min_capacity: false,
+    }));
+  }
+
+  // Keep backward compat for older DBs without category
   if (!msg.toLowerCase().includes("category") || !msg.toLowerCase().includes("does not exist")) {
     throw new Error(msg || "Error fetching trips");
   }
 
   const { data: legacy, error: legacyError } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id")
+    .select("id, title, starts_at, capacity, is_visible, status, series_id")
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .lte("starts_at", to)
@@ -69,9 +97,10 @@ export async function getTripsBySchoolId(
     .limit(opts?.limit ?? 200);
   if (legacyError) throw new Error(legacyError.message);
 
-  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category">>).map((r) => ({
+  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category" | "requires_min_capacity">>).map((r) => ({
     ...r,
     category: "trip",
+    requires_min_capacity: false,
   }));
 }
 
@@ -82,22 +111,47 @@ export async function getUpcomingTripsBySchoolId(
 ) {
   const from = new Date().toISOString();
 
-  let query = supabase
+  const baseQuery = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
+    .select(
+      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+    )
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .order("starts_at", { ascending: true })
     .limit(50);
+
+  let query = baseQuery;
 
   if (opts?.visibleOnly) {
     query = query.eq("is_visible", true);
   }
 
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  if (!error) {
+    return (data ?? []) as unknown as AdminTripRow[];
+  }
 
-  return (data ?? []) as unknown as AdminTripRow[];
+  const msg =
+    typeof error === "object" && error && "message" in error
+      ? String((error as unknown as { message?: string }).message)
+      : "";
+  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+    let retry = baseQuery.select("id, title, starts_at, capacity, is_visible, status, series_id, category");
+    if (opts?.visibleOnly) {
+      retry = retry.eq("is_visible", true);
+    }
+
+    const { data: fallback, error: fallbackError } = await retry;
+    if (fallbackError) throw new Error(fallbackError.message);
+
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+      ...r,
+      requires_min_capacity: false,
+    }));
+  }
+
+  throw new Error(error.message);
 }
 
 export async function getHiddenTripsBySchoolId(
@@ -106,14 +160,18 @@ export async function getHiddenTripsBySchoolId(
 ) {
   const from = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const baseQuery = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
+    .select(
+      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+    )
     .eq("school_id", schoolId)
     .eq("is_visible", false)
     .gte("starts_at", from)
     .order("starts_at", { ascending: true })
     .limit(100);
+
+  const { data, error } = await baseQuery;
 
   if (!error) {
     return (data ?? []) as unknown as AdminTripRow[];
@@ -125,6 +183,25 @@ export async function getHiddenTripsBySchoolId(
     const value = (error as { message?: unknown }).message;
     return typeof value === "string" ? value : String(value ?? "");
   })();
+
+  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from("events")
+      .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
+      .eq("school_id", schoolId)
+      .eq("is_visible", false)
+      .gte("starts_at", from)
+      .order("starts_at", { ascending: true })
+      .limit(100);
+    if (fallbackError) throw new Error(fallbackError.message);
+
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+      ...r,
+      requires_min_capacity: false,
+    }));
+  }
+
+  // Keep backward compat for older DBs without category
   if (!msg.toLowerCase().includes("category") || !msg.toLowerCase().includes("does not exist")) {
     throw new Error(msg || "Error fetching trips");
   }

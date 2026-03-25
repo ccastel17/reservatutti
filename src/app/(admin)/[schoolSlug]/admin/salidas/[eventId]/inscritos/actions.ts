@@ -26,10 +26,21 @@ const ToggleFrequentSchema = Schema.extend({
 });
 
 const ManualAddSchema = Schema.extend({
-  participantName: z.string().min(2).max(80),
-  participantPhone: z.string().min(6).max(32),
+  contactId: z
+    .string()
+    .uuid()
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  participantName: z.string().min(2).max(80).optional(),
+  participantPhone: z.string().min(6).max(32).optional(),
   hasPlusOne: z.coerce.boolean().optional().default(false),
-});
+}).refine(
+  (v) => Boolean(v.contactId) || (Boolean(v.participantName) && Boolean(v.participantPhone)),
+  {
+    message: "Debes seleccionar un contacto o completar nombre y teléfono.",
+    path: ["contactId"],
+  }
+);
 
 export async function cancelTrip(formData: FormData) {
   const parsed = Schema.safeParse({
@@ -359,23 +370,23 @@ export async function addManualReservation(formData: FormData) {
   const parsed = ManualAddSchema.safeParse({
     schoolSlug: formData.get("schoolSlug"),
     eventId: formData.get("eventId"),
+    contactId: formData.get("contactId") ?? undefined,
     participantName: formData.get("participantName"),
     participantPhone: formData.get("participantPhone"),
     hasPlusOne: formData.get("hasPlusOne"),
   });
-  if (!parsed.success) redirect("/");
-
-  const { schoolSlug, eventId, participantName, participantPhone } = parsed.data;
-  const hasPlusOne = Boolean(parsed.data.hasPlusOne);
-
-  const phoneE164 = normalizePhoneToE164Spain(participantPhone);
-  if (!phoneE164) {
+  if (!parsed.success) {
+    const schoolSlug = String(formData.get("schoolSlug") ?? "");
+    const eventId = String(formData.get("eventId") ?? "");
     redirect(
       `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
-        "Escribe un teléfono válido."
+        "Debes seleccionar un contacto o completar nombre y teléfono."
       )}`
     );
   }
+
+  const { schoolSlug, eventId } = parsed.data;
+  const hasPlusOne = Boolean(parsed.data.hasPlusOne);
 
   const { school } = await requireAdminSchoolAccess({
     schoolSlug,
@@ -383,6 +394,46 @@ export async function addManualReservation(formData: FormData) {
   });
 
   const supabase = await getSupabaseServer();
+
+  const selectedContactId = parsed.data.contactId;
+  const selectedContact = selectedContactId
+    ? await (async () => {
+        const { data, error } = await supabase
+          .from("contacts")
+          .select("id, full_name, phone_e164, reservations_count, is_frequent_override")
+          .eq("id", selectedContactId)
+          .eq("school_id", school.id)
+          .maybeSingle();
+
+        if (error || !data) {
+          redirect(
+            `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
+              "No se pudo encontrar el contacto seleccionado."
+            )}`
+          );
+        }
+
+        return data;
+      })()
+    : null;
+
+  const participantName = selectedContact
+    ? selectedContact.full_name
+    : (parsed.data.participantName ?? "").trim();
+
+  const participantPhoneE164 = selectedContact
+    ? selectedContact.phone_e164
+    : (() => {
+        const normalized = normalizePhoneToE164Spain(parsed.data.participantPhone ?? "");
+        if (!normalized) {
+          redirect(
+            `/${schoolSlug}/admin/salidas/${eventId}/inscritos?err=${encodeURIComponent(
+              "Escribe un teléfono válido."
+            )}`
+          );
+        }
+        return normalized;
+      })();
 
   const { data: trip, error: tripError } = await supabase
     .from("events")
@@ -430,12 +481,14 @@ export async function addManualReservation(formData: FormData) {
   const needed = hasPlusOne ? 2 : 1;
   const willBePending = occupied + needed > trip.capacity;
 
-  const { data: existingContact, error: contactError } = await supabase
-    .from("contacts")
-    .select("id, reservations_count, is_frequent_override")
-    .eq("school_id", school.id)
-    .eq("phone_e164", phoneE164)
-    .maybeSingle();
+  const { data: existingContact, error: contactError } = selectedContact
+    ? { data: selectedContact, error: null }
+    : await supabase
+        .from("contacts")
+        .select("id, reservations_count, is_frequent_override")
+        .eq("school_id", school.id)
+        .eq("phone_e164", participantPhoneE164)
+        .maybeSingle();
 
   if (contactError) {
     redirect(
@@ -463,7 +516,7 @@ export async function addManualReservation(formData: FormData) {
       .from("contacts")
       .insert({
         school_id: school.id,
-        phone_e164: phoneE164,
+        phone_e164: participantPhoneE164,
         full_name: participantName.trim(),
         reservations_count: 0,
       })
@@ -479,7 +532,7 @@ export async function addManualReservation(formData: FormData) {
     }
 
     contactId = inserted.id;
-  } else {
+  } else if (!selectedContactId) {
     await supabase
       .from("contacts")
       .update({ full_name: participantName.trim() })
@@ -491,7 +544,7 @@ export async function addManualReservation(formData: FormData) {
     event_id: eventId,
     contact_id: contactId,
     participant_name: participantName.trim(),
-    participant_phone_e164: phoneE164,
+    participant_phone_e164: participantPhoneE164,
     has_plus_one: hasPlusOne,
     status: willBePending ? "pending" : "confirmed",
   });
