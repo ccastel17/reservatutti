@@ -13,6 +13,7 @@ const Schema = z.object({
   time: z.string().min(4),  // HH:mm
   durationHours: z.coerce.number().min(0.5).max(10),
   capacity: z.coerce.number().int().min(1).max(200),
+  requiresMinCapacity: z.coerce.boolean().optional().default(false),
   meetingPoint: z.string().optional(),
   description: z.string().optional(),
 });
@@ -26,6 +27,7 @@ export async function createTrip(formData: FormData) {
     time: formData.get("time"),
     durationHours: formData.get("durationHours"),
     capacity: formData.get("capacity"),
+    requiresMinCapacity: formData.get("requiresMinCapacity"),
     meetingPoint: formData.get("meetingPoint") ?? undefined,
     description: formData.get("description") ?? undefined,
   });
@@ -34,7 +36,18 @@ export async function createTrip(formData: FormData) {
     redirect("/");
   }
 
-  const { schoolSlug, category, title, date, time, durationHours, capacity, meetingPoint, description } =
+  const {
+    schoolSlug,
+    category,
+    title,
+    date,
+    time,
+    durationHours,
+    capacity,
+    requiresMinCapacity,
+    meetingPoint,
+    description,
+  } =
     parsed.data;
 
   const { school } = await requireAdminSchoolAccess({
@@ -57,6 +70,7 @@ export async function createTrip(formData: FormData) {
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       capacity,
+      requires_min_capacity: Boolean(requiresMinCapacity),
       is_visible: true,
       status: "scheduled",
       category,

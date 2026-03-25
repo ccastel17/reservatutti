@@ -6,6 +6,7 @@ export type AdminTripRow = {
   title: string;
   starts_at: string;
   capacity: number;
+  requires_min_capacity: boolean;
   is_visible: boolean;
   status: "scheduled" | "cancelled" | "closed";
   series_id: string | null;
@@ -34,7 +35,7 @@ export async function getTripsBySchoolId(
 
   let query = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
+    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .lte("starts_at", to)
@@ -60,7 +61,7 @@ export async function getTripsBySchoolId(
 
   const { data: legacy, error: legacyError } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status, series_id")
+    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id")
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .lte("starts_at", to)
@@ -83,7 +84,7 @@ export async function getUpcomingTripsBySchoolId(
 
   let query = supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
+    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
     .eq("school_id", schoolId)
     .gte("starts_at", from)
     .order("starts_at", { ascending: true })
@@ -107,7 +108,7 @@ export async function getHiddenTripsBySchoolId(
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
+    .select("id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category")
     .eq("school_id", schoolId)
     .eq("is_visible", false)
     .gte("starts_at", from)

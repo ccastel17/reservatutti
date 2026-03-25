@@ -119,6 +119,7 @@ export type Database = {
           starts_at: string;
           ends_at: string;
           capacity: number;
+          requires_min_capacity: boolean;
           is_visible: boolean;
           status: "scheduled" | "cancelled" | "closed";
           category: "trip" | "theory" | "practice";
@@ -137,6 +138,7 @@ export type Database = {
           starts_at: string;
           ends_at: string;
           capacity: number;
+          requires_min_capacity?: boolean;
           is_visible?: boolean;
           status?: "scheduled" | "cancelled" | "closed";
           category?: "trip" | "theory" | "practice";
@@ -155,6 +157,7 @@ export type Database = {
           starts_at?: string;
           ends_at?: string;
           capacity?: number;
+          requires_min_capacity?: boolean;
           is_visible?: boolean;
           status?: "scheduled" | "cancelled" | "closed";
           category?: "trip" | "theory" | "practice";
@@ -285,6 +288,7 @@ export type Database = {
           start_time: string;
           duration_minutes: number;
           capacity: number;
+          requires_min_capacity: boolean;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -299,6 +303,7 @@ export type Database = {
           start_time: string;
           duration_minutes?: number;
           capacity: number;
+          requires_min_capacity?: boolean;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -313,6 +318,7 @@ export type Database = {
           start_time?: string;
           duration_minutes?: number;
           capacity?: number;
+          requires_min_capacity?: boolean;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;

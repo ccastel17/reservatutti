@@ -12,6 +12,7 @@ const Schema = z.object({
   time: z.string().min(4),
   durationHours: z.coerce.number().min(0.5).max(10),
   capacity: z.coerce.number().int().min(1).max(200),
+  requiresMinCapacity: z.coerce.boolean().optional().default(false),
   meetingPoint: z.string().optional(),
   description: z.string().optional(),
 });
@@ -66,6 +67,7 @@ export async function createWeeklyTemplate(formData: FormData) {
     time: formData.get("time"),
     durationHours: formData.get("durationHours"),
     capacity: formData.get("capacity"),
+    requiresMinCapacity: formData.get("requiresMinCapacity"),
     meetingPoint: formData.get("meetingPoint") ?? undefined,
     description: formData.get("description") ?? undefined,
   });
@@ -74,7 +76,17 @@ export async function createWeeklyTemplate(formData: FormData) {
     redirect("/");
   }
 
-  const { schoolSlug, title, weekday, time, durationHours, capacity, meetingPoint, description } =
+  const {
+    schoolSlug,
+    title,
+    weekday,
+    time,
+    durationHours,
+    capacity,
+    requiresMinCapacity,
+    meetingPoint,
+    description,
+  } =
     parsed.data;
 
   const { school } = await requireAdminSchoolAccess({
@@ -97,6 +109,7 @@ export async function createWeeklyTemplate(formData: FormData) {
       start_time: time,
       duration_minutes: durationMinutes,
       capacity,
+      requires_min_capacity: Boolean(requiresMinCapacity),
       is_active: true,
     })
     .select("id")
@@ -118,6 +131,7 @@ export async function createWeeklyTemplate(formData: FormData) {
       starts_at: o.startsAt.toISOString(),
       ends_at: o.endsAt.toISOString(),
       capacity,
+      requires_min_capacity: Boolean(requiresMinCapacity),
       is_visible: false,
       status: "scheduled" as const,
     }));

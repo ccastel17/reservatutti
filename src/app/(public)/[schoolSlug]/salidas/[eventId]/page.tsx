@@ -102,6 +102,13 @@ export default async function PublicTripDetailPage({ params }: Props) {
         ? { label: "Cerrada", className: "bg-surface-2 text-muted" }
         : null;
 
+  const minCapacityBadge =
+    trip.status === "scheduled" && trip.requires_min_capacity
+      ? confirmed.reduce((sum, r) => sum + 1 + (r.hasPlusOne ? 1 : 0), 0) >= trip.capacity
+        ? { label: "Confirmada", className: "bg-brand-50 text-brand-700" }
+        : { label: "Sin confirmar", className: "bg-amber-50 text-amber-800" }
+      : null;
+
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto w-full max-w-md px-4 py-8">
@@ -112,11 +119,18 @@ export default async function PublicTripDetailPage({ params }: Props) {
         <section className="mt-3 rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</h1>
-            {statusBadge ? (
-              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
-                {statusBadge.label}
-              </span>
-            ) : null}
+            <div className="flex flex-col items-end gap-1">
+              {statusBadge ? (
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
+                  {statusBadge.label}
+                </span>
+              ) : null}
+              {minCapacityBadge ? (
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${minCapacityBadge.className}`}>
+                  {minCapacityBadge.label}
+                </span>
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">

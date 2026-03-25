@@ -41,7 +41,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
 
   let query = supabase
     .from("events")
-    .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description, category")
+    .select("id, title, starts_at, ends_at, capacity, requires_min_capacity, status, meeting_point, description, category")
     .eq("school_id", school.id)
     .eq("is_visible", true)
     .gte("starts_at", from)
@@ -65,7 +65,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
 
     const legacyQuery = supabase
       .from("events")
-      .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description")
+      .select("id, title, starts_at, ends_at, capacity, requires_min_capacity, status, meeting_point, description")
       .eq("school_id", school.id)
       .eq("is_visible", true)
       .gte("starts_at", from)
@@ -185,7 +185,7 @@ export async function getPublicTripDetailBySlugAndId(params: {
   const { data: trip, error: tripError } = await supabase
     .from("events")
     .select(
-      "id, school_id, series_id, title, description, meeting_point, starts_at, ends_at, capacity, is_visible, status, category, cancelled_at, closed_at, created_at, updated_at"
+      "id, school_id, series_id, title, description, meeting_point, starts_at, ends_at, capacity, requires_min_capacity, is_visible, status, category, cancelled_at, closed_at, created_at, updated_at"
     )
     .eq("id", params.tripId)
     .eq("school_id", school.id)

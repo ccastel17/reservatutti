@@ -106,6 +106,10 @@ export default async function AdminActivityPage({ params }: Props) {
       return `Sobre tu inscripción en "${title}" (${day} ${time}). Ya has sido confirmado. Contáctanos por cualquier duda. Saludos.`;
     }
 
+    if (r.type === "event_confirmed") {
+      return `La salida/clase "${title}" (${day} ${time}) ¡Confirmada!`;
+    }
+
     return `Sobre tu inscripción en "${title}" (${day} ${time}).`;
   };
 
@@ -140,6 +144,9 @@ export default async function AdminActivityPage({ params }: Props) {
             const adminWaLink = r.type === "trip_duplicated"
               ? `https://wa.me/?text=${encodeURIComponent(buildWhatsAppMessage(r))}`
               : null;
+            const adminEventConfirmedWaLink = r.type === "event_confirmed"
+              ? `https://wa.me/?text=${encodeURIComponent(buildWhatsAppMessage(r))}`
+              : null;
 
             const title =
               r.type === "waitlist_promoted"
@@ -152,9 +159,13 @@ export default async function AdminActivityPage({ params }: Props) {
                     }"${r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""}.`
                 : r.type === "waitlist_joined"
                   ? "Nueva persona en lista de espera"
+                  : r.type === "event_confirmed"
+                    ? `La salida/clase "${r.events?.title ?? ""}"${
+                        r.events?.starts_at ? ` (${formatEventDateTime(r.events.starts_at)})` : ""
+                      } está confirmada.`
                   : r.type === "trip_duplicated"
                     ? `Se creó una salida nueva con ${tripDuplicatedPayload?.movedNames.length ?? 0} integrantes.`
-                  : "Actividad";
+                    : "Actividad";
 
             const subtitle = r.type === "waitlist_promoted" ? null : r.events?.title ? r.events.title : null;
 
@@ -224,6 +235,17 @@ export default async function AdminActivityPage({ params }: Props) {
                         className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
                       >
                         Enviar WhatsApp
+                      </Link>
+                    ) : null}
+
+                    {adminEventConfirmedWaLink ? (
+                      <Link
+                        href={adminEventConfirmedWaLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-sea shadow-sm"
+                      >
+                        Contactar por WhatsApp
                       </Link>
                     ) : null}
 

@@ -258,6 +258,18 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                         </span>
                       ) : null}
 
+                      {t.status === "scheduled" && t.requires_min_capacity ? (
+                        occupied >= t.capacity ? (
+                          <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                            Confirmada
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                            Sin confirmar
+                          </span>
+                        )
+                      ) : null}
+
                       {t.status === "scheduled" && occupied >= t.capacity ? (
                         <span className="rounded-full bg-sea-50 px-2.5 py-1 text-xs font-semibold text-sea">
                           Completa

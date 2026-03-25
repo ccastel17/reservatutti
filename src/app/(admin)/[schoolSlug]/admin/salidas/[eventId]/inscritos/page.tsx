@@ -38,7 +38,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const { data: trip, error: tripError } = await supabase
     .from("events")
-    .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description, category")
+    .select("id, title, starts_at, ends_at, capacity, requires_min_capacity, is_visible, status, meeting_point, description, category")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -137,6 +137,13 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         ? { label: "Cerrada", className: "bg-surface-2 text-muted" }
         : null;
 
+  const minCapacityBadge =
+    trip.status === "scheduled" && trip.requires_min_capacity
+      ? confirmedPeople >= trip.capacity
+        ? { label: "Confirmada", className: "bg-brand-50 text-brand-700" }
+        : { label: "Sin confirmar", className: "bg-amber-50 text-amber-800" }
+      : null;
+
   return (
     <main className="mx-auto w-full max-w-md px-4 py-6">
       {shareUrl ? <CopyToClipboardOnLoad text={shareUrl} /> : null}
@@ -150,11 +157,18 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">{catLabel}</p>
             <div className="mt-1 flex items-start justify-between gap-3">
               <p className="text-2xl font-semibold tracking-tight text-sea">{trip.title}</p>
-              {statusBadge ? (
-                <span className={`mt-0.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
-                  {statusBadge.label}
-                </span>
-              ) : null}
+              <div className="flex flex-col items-end gap-1">
+                {statusBadge ? (
+                  <span className={`mt-0.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge.className}`}>
+                    {statusBadge.label}
+                  </span>
+                ) : null}
+                {minCapacityBadge ? (
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${minCapacityBadge.className}`}>
+                    {minCapacityBadge.label}
+                  </span>
+                ) : null}
+              </div>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">

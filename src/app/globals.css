@@ -116,7 +116,8 @@ body {
     background-color: var(--surface-2);
   }
 
-  a[class*="bg-"]:hover {
+  a[class*="bg-brand"]:hover,
+  a[class*="bg-coral"]:hover {
     color: #fff;
   }
 
