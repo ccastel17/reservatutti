@@ -52,7 +52,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@layer base {
+@layer utilities {
   :where(button, a, summary, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]) {
     transition:
       background-color 150ms ease,
