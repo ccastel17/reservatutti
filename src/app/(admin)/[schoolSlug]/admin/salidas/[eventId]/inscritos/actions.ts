@@ -145,6 +145,8 @@ export async function updateCapacity(formData: FormData) {
 
   const supabase = await getSupabaseServer();
 
+  const admin = getSupabaseAdmin();
+
   const { data: reservations, error: resError } = await admin
     .from("reservations")
     .select("has_plus_one")
