@@ -4,6 +4,7 @@ import { requireAdminSchoolAccess } from "@/lib/tenant/requireAdminSchoolAccess"
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { CopyToClipboardOnLoad } from "@/components/admin/CopyToClipboardOnLoad";
 import { ShareTripButtons } from "@/components/admin/ShareTripButtons";
+import { ContactAgendaAutocomplete } from "@/components/admin/ContactAgendaAutocomplete";
 import {
   addManualReservation,
   cancelReservation,
@@ -96,15 +97,6 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         is_frequent_override: boolean;
       } | null;
     }>;
-
-  const { data: contacts, error: contactsError } = await supabase
-    .from("contacts")
-    .select("id, full_name, phone_e164")
-    .eq("school_id", school.id)
-    .order("updated_at", { ascending: false })
-    .limit(50);
-
-  if (contactsError) throw new Error(contactsError.message);
 
   const confirmedPeople = rows
     .filter((r) => r.status === "confirmed")
@@ -280,21 +272,13 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
             <div>
               <label className="block text-xs font-medium text-muted">Agenda</label>
-              <select
-                name="contactId"
-                defaultValue=""
-                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-sea outline-none focus:border-brand"
-              >
-                <option value="">Seleccionar de la agenda (opcional)</option>
-                {(contacts ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name} · {c.phone_e164}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-muted">
-                Si seleccionas un contacto, no hace falta completar nombre y teléfono.
-              </p>
+              <div className="mt-1">
+                <ContactAgendaAutocomplete
+                  schoolSlug={schoolSlug}
+                  inputName="contactId"
+                  placeholder="Buscar en la agenda por nombre o teléfono"
+                />
+              </div>
             </div>
 
             <div>

@@ -26,11 +26,14 @@ const ToggleFrequentSchema = Schema.extend({
 });
 
 const ManualAddSchema = Schema.extend({
-  contactId: z
-    .string()
-    .uuid()
-    .optional()
-    .transform((v) => (v ? v : undefined)),
+  contactId: z.preprocess(
+    (v) => {
+      if (typeof v !== "string") return v;
+      const trimmed = v.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    },
+    z.string().uuid().optional()
+  ),
   participantName: z.string().min(2).max(80).optional(),
   participantPhone: z.string().min(6).max(32).optional(),
   hasPlusOne: z.coerce.boolean().optional().default(false),
