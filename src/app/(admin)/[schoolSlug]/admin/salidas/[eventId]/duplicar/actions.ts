@@ -59,7 +59,7 @@ export async function confirmDuplicateTrip(formData: FormData) {
 
   const { data: originalTrip, error: originalError } = await supabase
     .from("events")
-    .select("id, capacity, status, requires_min_capacity, min_capacity")
+    .select("id, capacity, status, requires_min_capacity")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -111,7 +111,6 @@ export async function confirmDuplicateTrip(formData: FormData) {
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       capacity,
-      min_capacity: originalTrip.min_capacity ?? null,
       requires_min_capacity: Boolean(originalTrip.requires_min_capacity),
       is_visible: true,
       status: "scheduled",
