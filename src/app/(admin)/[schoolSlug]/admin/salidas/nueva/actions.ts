@@ -14,6 +14,13 @@ const Schema = z.object({
   durationHours: z.coerce.number().min(0.5).max(168),
   capacity: z.coerce.number().int().min(1).max(200),
   requiresMinCapacity: z.coerce.boolean().optional().default(false),
+  minCapacity: z.preprocess(
+    (value) => {
+      if (value === null || value === undefined || value === "") return undefined;
+      return Number(value);
+    },
+    z.number().int().min(1).max(200).optional()
+  ),
   meetingPoint: z.string().optional(),
   description: z.string().optional(),
 });
@@ -28,6 +35,7 @@ export async function createTrip(formData: FormData) {
     durationHours: formData.get("durationHours"),
     capacity: formData.get("capacity"),
     requiresMinCapacity: formData.get("requiresMinCapacity"),
+    minCapacity: formData.get("minCapacity"),
     meetingPoint: formData.get("meetingPoint") ?? undefined,
     description: formData.get("description") ?? undefined,
   });
@@ -45,6 +53,7 @@ export async function createTrip(formData: FormData) {
     durationHours,
     capacity,
     requiresMinCapacity,
+    minCapacity,
     meetingPoint,
     description,
   } =
@@ -70,6 +79,7 @@ export async function createTrip(formData: FormData) {
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       capacity,
+      min_capacity: requiresMinCapacity ? (minCapacity ?? null) : null,
       requires_min_capacity: Boolean(requiresMinCapacity),
       is_visible: true,
       status: "scheduled",

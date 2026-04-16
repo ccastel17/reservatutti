@@ -1,4 +1,5 @@
 import { createWeeklyTemplate } from "./actions";
+import { MinCapacityToggle } from "@/components/admin/MinCapacityToggle";
 
 type Props = {
   params: Promise<{ schoolSlug: string }>;
@@ -107,15 +108,7 @@ export default async function NewSeriesPage({ params }: Props) {
           />
         </div>
 
-        <label className="flex items-start gap-3 rounded-xl border border-border bg-surface-2 p-4">
-          <input type="checkbox" name="requiresMinCapacity" className="mt-1 h-4 w-4" />
-          <div>
-            <p className="text-sm font-semibold text-sea">Cupo mínimo requerido obligatorio</p>
-            <p className="text-xs text-muted">
-              Si se marca, las ocurrencias mostrarán el estado de confirmación y avisarán en Actividad cuando se complete el cupo.
-            </p>
-          </div>
-        </label>
+        <MinCapacityToggle />
 
         <button className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm">
           Crear salida semanal
