@@ -11,7 +11,7 @@ const Schema = z.object({
   title: z.string().min(2).max(80),
   date: z.string().min(10), // YYYY-MM-DD
   time: z.string().min(4),  // HH:mm
-  durationHours: z.coerce.number().min(0.5).max(10),
+  durationHours: z.coerce.number().min(0.5).max(168),
   capacity: z.coerce.number().int().min(1).max(200),
   requiresMinCapacity: z.coerce.boolean().optional().default(false),
   meetingPoint: z.string().optional(),

@@ -70,7 +70,7 @@ export default async function NewSeriesPage({ params }: Props) {
               name="durationHours"
               defaultValue={2}
               min={0.5}
-              max={10}
+              max={168}
               step={0.25}
               className="mt-1 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-sea outline-none focus:border-brand"
               required
