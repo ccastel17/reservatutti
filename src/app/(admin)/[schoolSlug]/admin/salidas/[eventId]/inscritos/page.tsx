@@ -39,7 +39,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const { data: tripWithMin, error: tripWithMinError } = await supabase
     .from("events")
-    .select("id, title, starts_at, ends_at, capacity, requires_min_capacity, is_visible, status, meeting_point, description, category")
+    .select("id, title, starts_at, ends_at, capacity, min_capacity, requires_min_capacity, is_visible, status, meeting_point, description, category")
     .eq("id", eventId)
     .eq("school_id", school.id)
     .maybeSingle();
@@ -52,7 +52,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         ? String((tripWithMinError as unknown as { message?: string }).message)
         : "";
 
-    if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+    if ((msg.toLowerCase().includes("requires_min_capacity") || msg.toLowerCase().includes("min_capacity")) && msg.toLowerCase().includes("does not exist")) {
       const { data: fallback, error: fallbackError } = await supabase
         .from("events")
         .select("id, title, starts_at, ends_at, capacity, is_visible, status, meeting_point, description, category")
@@ -60,7 +60,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
         .eq("school_id", school.id)
         .maybeSingle();
       if (fallbackError) throw new Error(fallbackError.message);
-      return fallback ? { ...fallback, requires_min_capacity: false } : null;
+      return fallback ? { ...fallback, min_capacity: null, requires_min_capacity: false } : null;
     }
 
     throw new Error(tripWithMinError.message);
@@ -161,7 +161,7 @@ export default async function TripBookingsPage({ params, searchParams }: Props) 
 
   const minCapacityBadge =
     trip.status === "scheduled" && trip.requires_min_capacity
-      ? confirmedPeople >= trip.capacity
+      ? confirmedPeople >= (trip.min_capacity ?? trip.capacity)
         ? { label: "Confirmada", className: "bg-brand-50 text-brand-700" }
         : { label: "Sin confirmar", className: "bg-amber-50 text-amber-800" }
       : null;

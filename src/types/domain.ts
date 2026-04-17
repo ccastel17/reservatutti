@@ -17,6 +17,7 @@ export type Trip = {
   starts_at: string;
   ends_at: string;
   capacity: number;
+  min_capacity: number | null;
   requires_min_capacity: boolean;
   is_visible: boolean;
   status: "scheduled" | "cancelled" | "closed";

@@ -283,7 +283,7 @@ export default async function AdminHomePage({ params, searchParams }: Props) {
                       ) : null}
 
                       {t.status === "scheduled" && t.requires_min_capacity ? (
-                        occupied >= t.capacity ? (
+                        occupied >= (t.min_capacity ?? t.capacity) ? (
                           <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
                             Confirmada
                           </span>

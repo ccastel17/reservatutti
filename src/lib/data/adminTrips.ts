@@ -6,6 +6,7 @@ export type AdminTripRow = {
   title: string;
   starts_at: string;
   capacity: number;
+  min_capacity: number | null;
   requires_min_capacity: boolean;
   is_visible: boolean;
   status: "scheduled" | "cancelled" | "closed";
@@ -36,7 +37,7 @@ export async function getTripsBySchoolId(
   const baseQuery = supabase
     .from("events")
     .select(
-      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+      "id, title, starts_at, capacity, min_capacity, requires_min_capacity, is_visible, status, series_id, category"
     )
     .eq("school_id", schoolId)
     .gte("starts_at", from)
@@ -60,7 +61,7 @@ export async function getTripsBySchoolId(
       ? String((error as unknown as { message?: string }).message)
       : "";
 
-  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+  if ((msg.toLowerCase().includes("requires_min_capacity") || msg.toLowerCase().includes("min_capacity")) && msg.toLowerCase().includes("does not exist")) {
     let retry = supabase
       .from("events")
       .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
@@ -76,8 +77,9 @@ export async function getTripsBySchoolId(
     const { data: fallback, error: fallbackError } = await retry;
     if (fallbackError) throw new Error(fallbackError.message);
 
-    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity" | "min_capacity">>).map((r) => ({
       ...r,
+      min_capacity: null,
       requires_min_capacity: false,
     }));
   }
@@ -97,9 +99,10 @@ export async function getTripsBySchoolId(
     .limit(opts?.limit ?? 200);
   if (legacyError) throw new Error(legacyError.message);
 
-  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category" | "requires_min_capacity">>).map((r) => ({
+  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category" | "requires_min_capacity" | "min_capacity">>).map((r) => ({
     ...r,
     category: "trip",
+    min_capacity: null,
     requires_min_capacity: false,
   }));
 }
@@ -114,7 +117,7 @@ export async function getUpcomingTripsBySchoolId(
   const baseQuery = supabase
     .from("events")
     .select(
-      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+      "id, title, starts_at, capacity, min_capacity, requires_min_capacity, is_visible, status, series_id, category"
     )
     .eq("school_id", schoolId)
     .gte("starts_at", from)
@@ -136,7 +139,7 @@ export async function getUpcomingTripsBySchoolId(
     typeof error === "object" && error && "message" in error
       ? String((error as unknown as { message?: string }).message)
       : "";
-  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+  if ((msg.toLowerCase().includes("requires_min_capacity") || msg.toLowerCase().includes("min_capacity")) && msg.toLowerCase().includes("does not exist")) {
     let retry = baseQuery.select("id, title, starts_at, capacity, is_visible, status, series_id, category");
     if (opts?.visibleOnly) {
       retry = retry.eq("is_visible", true);
@@ -145,8 +148,9 @@ export async function getUpcomingTripsBySchoolId(
     const { data: fallback, error: fallbackError } = await retry;
     if (fallbackError) throw new Error(fallbackError.message);
 
-    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity" | "min_capacity">>).map((r) => ({
       ...r,
+      min_capacity: null,
       requires_min_capacity: false,
     }));
   }
@@ -163,7 +167,7 @@ export async function getHiddenTripsBySchoolId(
   const baseQuery = supabase
     .from("events")
     .select(
-      "id, title, starts_at, capacity, requires_min_capacity, is_visible, status, series_id, category"
+      "id, title, starts_at, capacity, min_capacity, requires_min_capacity, is_visible, status, series_id, category"
     )
     .eq("school_id", schoolId)
     .eq("is_visible", false)
@@ -184,7 +188,7 @@ export async function getHiddenTripsBySchoolId(
     return typeof value === "string" ? value : String(value ?? "");
   })();
 
-  if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+  if ((msg.toLowerCase().includes("requires_min_capacity") || msg.toLowerCase().includes("min_capacity")) && msg.toLowerCase().includes("does not exist")) {
     const { data: fallback, error: fallbackError } = await supabase
       .from("events")
       .select("id, title, starts_at, capacity, is_visible, status, series_id, category")
@@ -195,8 +199,9 @@ export async function getHiddenTripsBySchoolId(
       .limit(100);
     if (fallbackError) throw new Error(fallbackError.message);
 
-    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity">>).map((r) => ({
+    return ((fallback ?? []) as unknown as Array<Omit<AdminTripRow, "requires_min_capacity" | "min_capacity">>).map((r) => ({
       ...r,
+      min_capacity: null,
       requires_min_capacity: false,
     }));
   }
@@ -216,8 +221,9 @@ export async function getHiddenTripsBySchoolId(
     .limit(100);
   if (legacyError) throw new Error(legacyError.message);
 
-  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category">>).map((r) => ({
+  return ((legacy ?? []) as Array<Omit<AdminTripRow, "category" | "min_capacity">>).map((r) => ({
     ...r,
     category: "trip",
+    min_capacity: null,
   }));
 }

@@ -132,6 +132,18 @@ export default async function PublicSchoolTripsPage({ params, searchParams }: Pr
                       </span>
                     ) : null}
 
+                    {t.status === "scheduled" && t.requires_min_capacity ? (
+                      t.occupied >= (t.min_capacity ?? t.capacity) ? (
+                        <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                          Confirmada
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          Sin confirmar
+                        </span>
+                      )
+                    ) : null}
+
                     <span className="inline-flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold text-sea shadow-sm">
                       Ver
                     </span>

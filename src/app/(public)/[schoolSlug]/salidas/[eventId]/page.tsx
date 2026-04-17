@@ -104,7 +104,7 @@ export default async function PublicTripDetailPage({ params }: Props) {
 
   const minCapacityBadge =
     trip.status === "scheduled" && trip.requires_min_capacity
-      ? confirmed.reduce((sum, r) => sum + 1 + (r.hasPlusOne ? 1 : 0), 0) >= trip.capacity
+      ? confirmed.reduce((sum, r) => sum + 1 + (r.hasPlusOne ? 1 : 0), 0) >= (trip.min_capacity ?? trip.capacity)
         ? { label: "Confirmada", className: "bg-brand-50 text-brand-700" }
         : { label: "Sin confirmar", className: "bg-amber-50 text-amber-800" }
       : null;

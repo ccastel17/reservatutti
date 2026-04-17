@@ -23,7 +23,7 @@ export type PublicTripDetail = {
 
 export type PublicTripListRow = Pick<
   Trip,
-  "id" | "title" | "starts_at" | "ends_at" | "capacity" | "status" | "meeting_point" | "description"
+  "id" | "title" | "starts_at" | "ends_at" | "capacity" | "min_capacity" | "requires_min_capacity" | "status" | "meeting_point" | "description"
 > & {
   occupied: number;
   spotsLeft: number;
@@ -49,7 +49,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
   const baseQuery = supabase
     .from("events")
     .select(
-      "id, title, starts_at, ends_at, capacity, requires_min_capacity, status, meeting_point, description, category",
+      "id, title, starts_at, ends_at, capacity, min_capacity, requires_min_capacity, status, meeting_point, description, category",
       { count: "exact" }
     )
     .eq("school_id", school.id)
@@ -72,7 +72,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
         ? String((error as unknown as { message?: string }).message)
         : "";
 
-    if (msg.toLowerCase().includes("requires_min_capacity") && msg.toLowerCase().includes("does not exist")) {
+    if ((msg.toLowerCase().includes("requires_min_capacity") || msg.toLowerCase().includes("min_capacity")) && msg.toLowerCase().includes("does not exist")) {
       let retry = supabase
         .from("events")
         .select("id, title, starts_at, ends_at, capacity, status, meeting_point, description, category", {
@@ -97,6 +97,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
         > & { category?: "trip" | "theory" | "practice" }
       >).map((t) => ({
         ...t,
+        min_capacity: null,
         requires_min_capacity: false,
       }));
 
@@ -165,6 +166,7 @@ export async function getPublicUpcomingTripsBySlug(params: {
       >
     >).map((t) => ({
       ...t,
+      min_capacity: null,
       requires_min_capacity: false,
     }));
 
@@ -213,9 +215,10 @@ export async function getPublicUpcomingTripsBySlug(params: {
     Pick<
       Trip,
       "id" | "title" | "starts_at" | "ends_at" | "capacity" | "status" | "meeting_point" | "description"
-    > & { category?: "trip" | "theory" | "practice"; requires_min_capacity?: boolean }
+    > & { category?: "trip" | "theory" | "practice"; requires_min_capacity?: boolean; min_capacity?: number | null }
   >).map((t) => ({
     ...t,
+    min_capacity: t.min_capacity ?? null,
     requires_min_capacity: Boolean(t.requires_min_capacity),
   }));
 
@@ -272,7 +275,7 @@ export async function getPublicTripDetailBySlugAndId(params: {
   const { data: trip, error: tripError } = await supabase
     .from("events")
     .select(
-      "id, school_id, series_id, title, description, meeting_point, starts_at, ends_at, capacity, requires_min_capacity, is_visible, status, category, cancelled_at, closed_at, created_at, updated_at"
+      "id, school_id, series_id, title, description, meeting_point, starts_at, ends_at, capacity, min_capacity, requires_min_capacity, is_visible, status, category, cancelled_at, closed_at, created_at, updated_at"
     )
     .eq("id", params.tripId)
     .eq("school_id", school.id)
